@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Optional
 
 class GroupOptionBase(BaseModel):
     store_id: Optional[str] = None

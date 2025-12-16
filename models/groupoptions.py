@@ -6,7 +6,7 @@ class GroupOptions(Base):
     __tablename__ = "group_options"
 
     id = Column(VARCHAR(36), primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
-    store_id = Column(String(50), nullable=True, index=True)
+    store_id = Column(String(50), nullable=False, index=True)
     shopify_name = Column(String(100), nullable=True)
     group_id = Column(VARCHAR(36), ForeignKey("groups.id"), nullable=False)
     product_id = Column(String(50), nullable=False)

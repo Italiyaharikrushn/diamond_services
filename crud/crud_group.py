@@ -32,4 +32,10 @@ class CRUDGroup(CRUDBase[Groups, GroupCreate, None]):
         db.commit()
         return group
 
+    def get_all(self, db: Session):
+        groups = db.query(Groups).all()
+        for group in groups:
+            group.options = db.query(GroupOptions).filter(GroupOptions.group_id == group.id).all()
+        return groups
+
 group = CRUDGroup(Groups)

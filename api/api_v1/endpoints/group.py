@@ -6,7 +6,7 @@ import crud
 
 router = APIRouter()
 
-@router.post("/groups", status_code=201)
+@router.post("/create-product", status_code=201)
 def create_group( payload: GroupCreate, db: Session = Depends(get_db)):
     group = crud.group.create(db=db, payload=payload)
 
@@ -14,3 +14,9 @@ def create_group( payload: GroupCreate, db: Session = Depends(get_db)):
         "message": "Group and group options created successfully",
         "group_id": group.id
     }
+
+@router.get("/get-all", status_code=200)
+def get_all_groups(db:Session = Depends(get_db)):
+    groups = crud.group.get_all(db=db)
+
+    return groups
