@@ -6,8 +6,8 @@ class CSVGemstoneBase(BaseModel):
     s_no: Optional[str] = None
     lab: str
     type: str
-    store_id: Optional[str] = None
-    shopify_name: Optional[str] = None
+    # store_id: Optional[str] = None
+    # shopify_name: Optional[str] = None
     carat: float
     color: str
     clarity: str

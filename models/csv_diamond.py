@@ -1,15 +1,19 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, func
+from sqlalchemy import Column, Integer, String, Float, DateTime, func, UniqueConstraint
 from db.base_class import Base
 
 
 class CSVDiamond(Base):
     __tablename__ = 'csv_diamonds'
 
+    __table_args__ = (
+        UniqueConstraint('store_id', 'certificate_no', name='uq_store_certificate'),
+    )
+
     id = Column(Integer, primary_key=True)
     s_no = Column(String(100), nullable=True)
     lab = Column(String(50), nullable=False)
     type = Column(String(50), nullable=False)
-    store_id = Column(String(50), nullable=True)
+    store_id = Column(String(50), nullable=False)
     shopify_name = Column(String(100), nullable=True)
     carat = Column(Float, nullable=False)
     color = Column(String(10), nullable=False)

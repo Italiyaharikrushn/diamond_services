@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from schemas.CSVGemstone import CSVGemstoneCreate, BulkDeleteRequest
 from api.dependencies import get_db, get_current_store
 from sqlalchemy.orm import Session
@@ -7,8 +7,8 @@ router = APIRouter()
 
 # Create CSV Data
 @router.post("/create-gemstones", status_code=201)
-def create_gemstone( gemstones: CSVGemstoneCreate, db: Session = Depends(get_db)):
-    created_gemstone = crud.gemstone.create(db=db, obj_in=gemstones)
+def create_gemstone(request: Request, gemstones: CSVGemstoneCreate, db: Session = Depends(get_db)):
+    created_gemstone = crud.gemstone.create(db=db, obj_in=gemstones, store_id=request.state.store_name)
     return created_gemstone
 
 # Get All CSV Data

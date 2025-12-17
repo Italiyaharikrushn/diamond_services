@@ -17,12 +17,15 @@ class CRUDGemstones(CRUDBase):
             return default
 
     # Create CSV Data
-    def create(self, db: Session, obj_in: CSVGemstoneCreate):
+    def create(self, db: Session, obj_in: CSVGemstoneCreate, store_id: str):
         try:
             csv_reader = csv.DictReader(StringIO(obj_in.csv_data))
             model_fields = set(CSVGemstone.__table__.columns.keys())
 
             gemstones = []
+            updated_gemstones = []
+            created_gemstones = []
+
             for row in csv_reader:
                 mapped = {}
 
@@ -35,19 +38,75 @@ class CRUDGemstones(CRUDBase):
                         )
 
                 mapped["s_no"] = row.get("Stone No") if row.get("Stone No") else None
-
                 mapped.setdefault("origin", "Unknown")
                 mapped.setdefault("description", "No description available")
                 mapped.setdefault("selling_price", mapped.get("price"))
                 mapped.setdefault("is_available", "Yes")
                 mapped.setdefault("status", 1)
 
-                gemstones.append(CSVGemstone(**mapped))
+                mapped["store_id"] = store_id
+
+                existing_gemstone = db.query(CSVGemstone).filter_by(certificate_no=mapped["certificate_no"], store_id=store_id).first()
+
+                if existing_gemstone:
+                    updated = False
+
+                    for key, value in mapped.items():
+                        if key == "certificate_no":
+                            continue
+
+                        old_value = getattr(existing_gemstone, key, None)
+
+                        if value != old_value:
+                            setattr(existing_gemstone, key, value)
+                            updated = True
+
+                    if not updated:
+                        # SAME DATA + SAME CERTIFICATE + SAME STORE
+                        raise HTTPException(
+                            status_code=400,
+                            detail=f"Duplicate certificate '{mapped['certificate_no']}' not allowed for this store"
+                        )
+
+                    updated_gemstones.append(existing_gemstone)
+                    gemstones.append(existing_gemstone)
+                else:
+                    new_gemstone = CSVGemstone(**mapped)
+                    created_gemstones.append(new_gemstone)
+                    gemstones.append(new_gemstone)
 
             db.bulk_save_objects(gemstones)  
             db.commit()
 
-            return gemstones
+            response = {
+                "created_gemstones": [
+                    {
+                        "certificate_no": g.certificate_no,
+                        "s_no": g.s_no,
+                        "carat": g.carat,
+                        "price": g.price,
+                        "selling_price": g.selling_price,
+                        "description": g.description,
+                        "origin": g.origin,
+                        # Add any other fields you want in the response
+                    } for g in created_gemstones
+                ],
+                "updated_gemstones": [
+                    {
+                        "id": g.id,
+                        "certificate_no": g.certificate_no,
+                        "s_no": g.s_no,
+                        "carat": g.carat,
+                        "price": g.price,
+                        "selling_price": g.selling_price,
+                        "description": g.description,
+                        "origin": g.origin,
+                        # Add any other fields you want in the response
+                    } for g in updated_gemstones
+                ],
+            }
+
+            return response
 
         except Exception as e:
             db.rollback()

@@ -17,12 +17,15 @@ class CRUDDiamonds(CRUDBase):
             return default
 
     # Create CSV Data
-    def create(self, db: Session, obj_in: CSVDiamondCreate):
+    def create(self, db: Session, obj_in: CSVDiamondCreate, store_id: str):
         try:
             csv_reader = csv.DictReader(StringIO(obj_in.csv_data))
             model_fields = set(CSVDiamond.__table__.columns.keys())
 
             diamonds = []
+            updated_diamonds = []
+            created_diamonds = []
+            
             for row in csv_reader:
                 mapped = {}
 
@@ -42,12 +45,67 @@ class CRUDDiamonds(CRUDBase):
                 mapped.setdefault("is_available", "Yes")
                 mapped.setdefault("status", 1)
 
-                diamonds.append(CSVDiamond(**mapped))
+                mapped["store_id"] = store_id
 
-            db.bulk_save_objects(diamonds)  
+                existing_diamond = db.query(CSVDiamond).filter_by(certificate_no=mapped["certificate_no"], store_id=store_id).first()
+
+                if existing_diamond:
+                    updated = False
+
+                    for key, value in mapped.items():
+                        if key == "certificate_no":
+                            continue
+
+                        old_value = getattr(existing_diamond, key, None)
+
+                        if value != old_value:
+                            setattr(existing_diamond, key, value)
+                            updated = True
+
+                    if not updated:
+                        # SAME DATA + SAME CERTIFICATE + SAME STORE
+                        raise HTTPException(
+                            status_code=400,
+                            detail=f"Duplicate certificate '{mapped['certificate_no']}' not allowed for this store"
+                        )
+
+                    updated_diamonds.append(existing_diamond)
+                    diamonds.append(existing_diamond)
+                else:
+                    new_diamond = CSVDiamond(**mapped)
+                    created_diamonds.append(new_diamond)
+                    diamonds.append(new_diamond)
+
+            db.bulk_save_objects(diamonds)
             db.commit()
 
-            return diamonds
+            response = {
+                "created_diamonds": [
+                {
+                    "certificate_no": d.certificate_no,
+                    "s_no": d.s_no,
+                    "carat": d.carat,
+                    "price": d.price,
+                    "selling_price": d.selling_price,
+                    "description": d.description,
+                    "origin": d.origin,
+                } for d in created_diamonds
+            ],
+            "updated_diamonds": [
+                {
+                    "id": d.id,
+                    "certificate_no": d.certificate_no,
+                    "s_no": d.s_no,
+                    "carat": d.carat,
+                    "price": d.price,
+                    "selling_price": d.selling_price,
+                    "description": d.description,
+                    "origin": d.origin,
+                } for d in updated_diamonds
+            ],
+            }
+
+            return response
 
         except Exception as e:
             db.rollback()

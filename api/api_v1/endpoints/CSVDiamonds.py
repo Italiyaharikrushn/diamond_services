@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from schemas.CSVDiamons import CSVDiamondCreate, BulkDeleteRequest
 from api.dependencies import get_db, get_current_store
 from sqlalchemy.orm import Session
@@ -7,8 +7,8 @@ router = APIRouter()
 
 # Create CSV Data
 @router.post("/create-diamonds", status_code=201)
-def create_diamonds( diamonds: CSVDiamondCreate, db: Session = Depends(get_db)):
-    created_diamonds = crud.diamonds.create(db=db, obj_in=diamonds)
+def create_diamonds(request: Request, diamonds: CSVDiamondCreate, db: Session = Depends(get_db)):
+    created_diamonds = crud.diamonds.create(db=db, obj_in=diamonds, store_id=request.state.store_name)
     return created_diamonds
 
 # Get All CSV Data
