@@ -6,9 +6,9 @@ from schemas.groups import GroupCreate
 
 class CRUDGroup(CRUDBase[Groups, GroupCreate, None]):
 
-    def create(self, db: Session, payload: GroupCreate):
+    def create(self, db: Session, payload: GroupCreate, store_id: str):
         group = Groups(
-            store_id=payload.store_id,
+            store_id=store_id,
             shopify_name=payload.shopify_name,
             group_name=payload.group_name,
             type=payload.type
@@ -19,8 +19,8 @@ class CRUDGroup(CRUDBase[Groups, GroupCreate, None]):
 
         for option in payload.options:
             group_option = GroupOptions(
-                store_id=option.store_id,
-                shopify_name=option.shopify_name,
+                store_id=store_id,
+                shopify_name=payload.shopify_name,
                 group_id=group.id,
                 product_id=option.product_id,
                 color_code=option.color_code,
@@ -32,10 +32,36 @@ class CRUDGroup(CRUDBase[Groups, GroupCreate, None]):
         db.commit()
         return group
 
-    def get_all(self, db: Session):
-        groups = db.query(Groups).all()
+    def get_all(self, db: Session, store_id: str):
+        groups = db.query(Groups).filter(Groups.store_id == store_id).all()
         for group in groups:
             group.options = db.query(GroupOptions).filter(GroupOptions.group_id == group.id).all()
         return groups
 
+    def get_by_id(self, db: Session, store_id: str, group_id: str):
+        group = db.query(Groups).filter(Groups.store_id == store_id, Groups.id == group_id).first()
+
+        if not group:
+            return None
+        
+        group.options = db.query(GroupOptions).filter(GroupOptions.group_id == group_id).all()
+
+        return group
+    
+    def delete_by_id(self, db: Session, store_id: str, group_id: str):
+        try:
+            # delete_group = (db.query(Groups).filter(Groups.store_id == store_id, Groups.id == group_id).update({"status": 0}, synchronize_session=False))
+            # deleted_options = (db.query(GroupOptions).filter(GroupOptions.group_id == group_id).update({"status": 0}, synchronize_session=False))
+            delete_group = db.query(Groups).filter(Groups.store_id == store_id, Groups.id == group_id).delete(synchronize_session=False)
+            deleted_options = db.query(GroupOptions).filter(GroupOptions.group_id == group_id).delete(synchronize_session=False)
+
+            db.commit()
+            if delete_group == 0:
+                return None
+            
+            return {"group_id": group_id, "deleted_group": delete_group, "deleted_options": deleted_options}
+        except Exception as e:
+            db.rollback()
+            return {"success": False, "error": str(e)}
+        
 group = CRUDGroup(Groups)

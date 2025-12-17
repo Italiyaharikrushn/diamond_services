@@ -104,7 +104,7 @@ class CRUDGemstones(CRUDBase):
     def bulk_delete_gemstones(self, db: Session, store_id: str, shopify_app: str, ids: list[int]):
         try:
             deleted = (
-                db.query(CSVGemstone).filter(CSVGemstone.id.in_(ids), CSVGemstone.store_id == store_id, CSVGemstone.shopify_name == shopify_app).update({"status": 0}, synchronize_session=False)
+                db.query(CSVGemstone).filter(CSVGemstone.id.in_(ids), CSVGemstone.store_id == store_id, CSVGemstone.shopify_name == shopify_app).delete(synchronize_session=False)
             )
             db.commit()
             return {
@@ -120,7 +120,7 @@ class CRUDGemstones(CRUDBase):
     def all_delete_gemstones(self, db: Session, store_id: str, shopify_app: str):
         try:
             deleted = (
-                db.query(CSVGemstone).filter(CSVGemstone.store_id == store_id,func.lower(CSVGemstone.shopify_name) == shopify_app.lower(),CSVGemstone.status == 1).update({"status": 0}, synchronize_session=False)
+                db.query(CSVGemstone).filter(CSVGemstone.store_id == store_id,func.lower(CSVGemstone.shopify_name) == shopify_app.lower(),CSVGemstone.status == 1).delete(synchronize_session=False)
             )
 
             db.commit()
@@ -132,7 +132,7 @@ class CRUDGemstones(CRUDBase):
         except Exception as e:
             db.rollback()
             return {
-                "success": False,       "error": str(e)
+                "success": False, "error": str(e)
             }
 
 

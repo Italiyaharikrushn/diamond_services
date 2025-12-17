@@ -26,7 +26,8 @@ class AuthMiddleWare(BaseHTTPMiddleware):
 
         store_payload = decode_custom_token(token)
         if store_payload:
-            request.state.store_name = store_payload.get("dest")
+            store = store_payload.get("dest", "").replace("https://", "")
+            request.state.store_name = store
             request.state.current_user = None
             return await call_next(request)
 
