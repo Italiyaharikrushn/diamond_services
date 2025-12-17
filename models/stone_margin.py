@@ -1,7 +1,5 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, Enum, func
 from db.base_class import Base
-from typing import List
-from pydantic import BaseModel
 import enum
 
 class StoneType(str, enum.Enum):

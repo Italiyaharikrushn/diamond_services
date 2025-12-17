@@ -3,3 +3,4 @@ from .crud_CSVDiamons import diamonds
 from .crud_CSVGemstones import gemstone
 from .crud_stoneMargin import margin
 from .crud_group import group
+from .crud_storeSetting import storesettings

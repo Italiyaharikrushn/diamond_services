@@ -6,3 +6,4 @@ from models.csv_gemstones import CSVGemstone
 from models.stone_margin import StoneMargin
 from models.groups import Groups
 from models.groupoptions import GroupOptions
+from models.storesettings import StoreSettings
