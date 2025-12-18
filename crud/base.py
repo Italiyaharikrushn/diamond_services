@@ -12,12 +12,6 @@ UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 
 class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     def __init__(self, model: Type[ModelType]):
-        """
-        CRUD object with default methods to Create, Read, Update, Delete (CRUD).
-        **Parameters**
-        * `model`: A SQLAlchemy model class
-        * `schema`: A Pydantic model (schema) class
-        """
         self.model = model
 
     def get(self, db: Session, id: Any) -> Optional[ModelType]:
@@ -28,27 +22,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self, db: Session, *, skip: int=0, limit: int=100,
     ) -> List[ModelType]:
         return db.query(self.model).offset(skip).limit(limit).all()    
- 
-    # def get_sub_cate_multi(
-    #     self, db: Session, *, skip: int = 0, limit: int = 100, category_id : int
-    # ) -> List[ModelType]:
-        
-    #     return db.query(self.model).filter(SubCategorys.category_id == category_id).offset(skip).limit(limit).all()    
-
-   
-    
-    # def get_category_multi(
-    #     self, db: Session, *, skip: int = 0, limit: int = 100,
-    # ) -> List[ModelType]:
-    #     return db.query(self.model).offset(skip).limit(limit).all()
-
-    # def get_multi_with_filter(
-    #     self, db: Session, filter_tpl=None, skip: int = 0, limit: int = 100,
-    # ) -> List[ModelType]:
-    #     if filter_tpl is None:
-    #         return db.query(self.model).filter(User.is_super_admin == False).filter(self.model.status == 1).offset(skip).limit(limit).all()
-    #     else:
-    #         return db.query(self.model).filter(User.is_super_admin == False,self.model.status == 1, filter_tpl).offset(skip).limit(limit).all()
 
     def create(self, db: Session, *, obj_in: CreateSchemaType, created_by=None) -> ModelType:
         obj_in_data = jsonable_encoder(obj_in)

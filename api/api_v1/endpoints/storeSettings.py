@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request, HTTPException
+from fastapi import APIRouter, Depends, Request
 import crud
 from schemas.storesttings import StoreSettingsCreate
 from api.dependencies import get_db

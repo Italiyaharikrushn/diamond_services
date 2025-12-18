@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Optional, Union, TypeVar
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
-from sqlalchemy import func, or_
+from sqlalchemy import func
 from crud.base import CRUDBase
 from models.user import User
 from db.base_class import Base

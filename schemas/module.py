@@ -10,11 +10,9 @@ class ModuleBase(BaseModel):
     is_header: bool = False
 
 
-# Properties to receive via API on creation
 class ModuleCreate(ModuleBase):
     ...
 
-# Properties to receive via API on update
 class ModuleUpdate(ModuleBase):
     id: int
 
@@ -25,6 +23,5 @@ class ModuleInDBBase(ModuleBase):
     class Config:
         orm_mode = True
 
-# Additional properties to return via API
 class Module(ModuleInDBBase):
     pass

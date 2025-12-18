@@ -3,7 +3,7 @@ import csv
 from crud.base import CRUDBase
 from sqlalchemy.orm import Session
 from models.csv_gemstones import CSVGemstone
-from typing import Any, Optional
+from typing import Optional
 from fastapi import HTTPException
 from sqlalchemy import func
 from schemas.CSVGemstone import CSVGemstoneCreate

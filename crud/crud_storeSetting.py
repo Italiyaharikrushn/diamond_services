@@ -2,8 +2,7 @@ from crud.base import CRUDBase
 from models.storesettings import StoreSettings
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from schemas.storesttings import StoreSettingsCreate, StoreSettingsBase
-from sqlalchemy import func
+from schemas.storesttings import StoreSettingsCreate
 
 class CRUDStoresetting(CRUDBase):
     def create(self, db: Session, payload: StoreSettingsCreate, store_id: str):

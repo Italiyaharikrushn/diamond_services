@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from api.dependencies import get_db
 from schemas.auth import LoginSchema, RegisterSchema
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta, date
+from datetime import timedelta, date
 from services.user_service import create_access_token, create_user, get_user_by_email
 from core.config import settings
 from util.token import create_custom_token

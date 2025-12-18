@@ -3,7 +3,7 @@ import csv
 from crud.base import CRUDBase
 from sqlalchemy.orm import Session
 from models.csv_diamond import CSVDiamond
-from typing import Any, Optional
+from typing import Optional
 from fastapi import HTTPException
 from schemas.CSVDiamons import CSVDiamondCreate
 from sqlalchemy import func
