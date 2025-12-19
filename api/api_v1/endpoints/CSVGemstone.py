@@ -12,13 +12,13 @@ def create_gemstone(request: Request, gemstones: CSVGemstoneCreate, db: Session 
     return created_gemstone
 
 # Get All CSV Data
-@router.get("/gemstones", status_code=200)
+@router.get("/all-gemstones", status_code=200)
 def get_all(db:Session = Depends(get_db), store_name: str = Depends(get_current_store)):
     data = crud.gemstone.get_all(db=db, store_id = store_name)
     return data
 
 # Get Filter Data
-@router.get("/gemstones/filters", status_code=200)
+@router.get("/filters", status_code=200)
 def gemstone_filters(shopify_app: str, db: Session = Depends(get_db), store_name: str = Depends(get_current_store)):
     store_id = store_name 
     result = crud.gemstone.get_gemstone_filter(db, store_id, shopify_app)
@@ -28,7 +28,7 @@ def gemstone_filters(shopify_app: str, db: Session = Depends(get_db), store_name
     return result
 
 # Delete Bulk Data
-@router.delete("/gemstones/bulk", status_code=200)
+@router.delete("/bulk-delete", status_code=200)
 def bulk_delete_gemstones(payload: BulkDeleteRequest, shopify_app: str, db: Session = Depends(get_db), store_name: str = Depends(get_current_store)):
     result = crud.gemstone.bulk_delete_gemstones(db=db, store_id=store_name, shopify_app=shopify_app, ids=payload.ids)
     if not result["success"]:
@@ -36,7 +36,7 @@ def bulk_delete_gemstones(payload: BulkDeleteRequest, shopify_app: str, db: Sess
     return result
 
 # Delete All Data
-@router.delete("/gemstones/all", status_code=200)
+@router.delete("/all-delete", status_code=200)
 def soft_delete_all_gemstones( shopify_app: str, db: Session = Depends(get_db), store_name: str = Depends(get_current_store)):
     result = crud.gemstone.all_delete_gemstones( db=db, store_id=store_name, shopify_app=shopify_app)
 
