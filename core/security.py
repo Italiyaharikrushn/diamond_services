@@ -36,7 +36,8 @@ def is_unauthorized_url(request: Request):
         "/openapi.json",
         "/auth/login",
         "/auth/register",
-        "/token/generate-token"
+        "/token/generate-token",
+        "/diamonds/diamonds"
     ]
 
     path = request.url.path

@@ -1,5 +1,6 @@
 from io import StringIO
 import csv
+from loguru import logger
 from crud.base import CRUDBase
 from sqlalchemy.orm import Session
 from models.csv_diamond import CSVDiamond
@@ -7,6 +8,7 @@ from typing import Optional
 from fastapi import HTTPException
 from schemas.CSVDiamons import CSVDiamondCreate
 from sqlalchemy import func
+from services.diamonds_service import get_custom_diamonds
 
 class CRUDDiamonds(CRUDBase):
     @staticmethod
@@ -183,4 +185,27 @@ class CRUDDiamonds(CRUDBase):
             return {
                 "success": False, "error": str(e)
             }
+        
+    async def get_diamonds(
+        self,
+        store_id: str,
+        custom_feed: bool,
+        shopify_name: str | None,
+        query_params: dict
+    ):
+        if not store_id:
+            logger.error("store id required")
+            return {"error": True, "status": 400, "message": "Store_id is required"}
+
+        stone_type = query_params.get("type")
+
+        if custom_feed:
+            logger.info(f"CUSTOM FEED | store={store_id}")
+            data = await get_custom_diamonds(query_params)
+            return {"error": False, "data": data}
+
+        # If no stone_type or no feed config, just return custom diamonds
+        data = await get_custom_diamonds(query_params)
+
+        return {"error": False, "data": data}
 diamonds = CRUDDiamonds(CSVDiamond)
