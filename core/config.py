@@ -1,7 +1,6 @@
 import os
 from pydantic_settings import BaseSettings
-from typing import Optional, ClassVar
-from functools import lru_cache
+from typing import ClassVar
 
 
 class Settings(BaseSettings):

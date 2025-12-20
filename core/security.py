@@ -3,7 +3,6 @@ from jose import jwt
 import time
 from fastapi.requests import Request
 from typing import Optional
-from pydantic import BaseModel
 from core.config import settings
 
 SECRET_KEY = "qwertyuiopasdfghjklzxcvbnmmnbvcxzlkjhgfdsapoiuytrewq"

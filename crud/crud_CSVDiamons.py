@@ -197,25 +197,27 @@ class CRUDDiamonds(CRUDBase):
             return {"error": True, "status": 400, "message": "Store_id is required"}
         
         store_settings = (
-            db.query(StoreSettings)
-            .filter(StoreSettings.store_id == store_id)
-            .first()
+            db.query(StoreSettings).filter(StoreSettings.store_id == store_id).first()
         )
         if not store_settings:
                     return {
-                        "error": True,
-                        "status": 404,
-                        "message": "Store settings not found"
+                        "error": True, "status": 404, "message": "Store settings not found"
                     }
 
-        stone_type = query_params.get("type")
+        if not store_settings.custom_feed:
+            stone_type = query_params.get("type")
+            if not stone_type:
+                return {
+                    "error": True, "status": 400, "message": "'type' parameter is required"
+                }
+        else:
+            stone_type = query_params.get("type")
 
         logger.info(f"STORE={store_id} | CUSTOM_FEED={store_settings.custom_feed}")
         query = db.query(CSVDiamond).filter(CSVDiamond.store_id == store_id)
 
-        if not store_settings.custom_feed:
-            if stone_type:
-                query = query.filter(CSVDiamond.type == stone_type)
+        if not store_settings.custom_feed and stone_type:
+            query = query.filter(CSVDiamond.type == stone_type)
 
         diamonds = query.all()
 

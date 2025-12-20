@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Query
 from schemas.CSVDiamons import CSVDiamondCreate, BulkDeleteRequest
 from api.dependencies import get_db, get_current_store
 from sqlalchemy.orm import Session
-from fastapi.responses import JSONResponse
 import crud
 router = APIRouter()
 
@@ -50,12 +49,7 @@ async def get_diamonds(request: Request, store_id: str | None = Query(None), db:
     store_id = store_id or getattr(request.state, "store_id", None)
     shopify_app = getattr(request.state, "shopify_app", None)
 
-    result = await crud.diamonds.get_diamonds(
-        db=db,
-        store_id=store_id,
-        shopify_name=shopify_app,
-        query_params=dict(request.query_params)
-    )
+    result = await crud.diamonds.get_diamonds( db=db, store_id=store_id, shopify_name=shopify_app, query_params=dict(request.query_params))
 
     if result["error"]:
         return {"success": False, "message": result["message"]}

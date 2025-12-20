@@ -1,7 +1,5 @@
-from fastapi import APIRouter, Depends, FastAPI
+from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.dependencies import get_current_user
-from core.config import settings
 from fastapi.staticfiles import StaticFiles
 from api.api_v1 import api_v1
 from middlewares.auth_middleware import AuthMiddleWare
