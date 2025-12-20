@@ -44,24 +44,21 @@ def all_delete_diamonds( shopify_app: str, db: Session = Depends(get_db), store_
 
     return result
 
-@router.get("/diamonds", status_code=200)
-async def get_diamonds(request: Request, store_id: str | None = Query(None)):
-    store_id = store_id or request.state.store_id
-    custom_feed = getattr(request.state, "custom_feed", False)  # default to False
+# get diamonds public routes
+@router.get("/public/diamonds", status_code=200)
+async def get_diamonds(request: Request, store_id: str | None = Query(None), db: Session = Depends(get_db)):
+    store_id = store_id or getattr(request.state, "store_id", None)
     shopify_app = getattr(request.state, "shopify_app", None)
 
     result = await crud.diamonds.get_diamonds(
+        db=db,
         store_id=store_id,
-        custom_feed=custom_feed,
         shopify_name=shopify_app,
         query_params=dict(request.query_params)
     )
 
     if result["error"]:
-        return JSONResponse(
-            status_code=result.get("status", 400),
-            content={"success": False, "message": result["message"]}
-        )
+        return {"success": False, "message": result["message"]}
 
     return {
         "success": True,

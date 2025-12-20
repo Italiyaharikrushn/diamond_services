@@ -8,7 +8,7 @@ from typing import Optional
 from fastapi import HTTPException
 from schemas.CSVDiamons import CSVDiamondCreate
 from sqlalchemy import func
-from services.diamonds_service import get_custom_diamonds
+from models.storesettings import StoreSettings
 
 class CRUDDiamonds(CRUDBase):
     @staticmethod
@@ -188,24 +188,42 @@ class CRUDDiamonds(CRUDBase):
         
     async def get_diamonds(
         self,
+        db: Session,
         store_id: str,
-        custom_feed: bool,
         shopify_name: str | None,
         query_params: dict
     ):
         if not store_id:
-            logger.error("store id required")
             return {"error": True, "status": 400, "message": "Store_id is required"}
+        
+        store_settings = (
+            db.query(StoreSettings)
+            .filter(StoreSettings.store_id == store_id)
+            .first()
+        )
+        if not store_settings:
+                    return {
+                        "error": True,
+                        "status": 404,
+                        "message": "Store settings not found"
+                    }
 
         stone_type = query_params.get("type")
 
-        if custom_feed:
-            logger.info(f"CUSTOM FEED | store={store_id}")
-            data = await get_custom_diamonds(query_params)
-            return {"error": False, "data": data}
+        logger.info(f"STORE={store_id} | CUSTOM_FEED={store_settings.custom_feed}")
+        query = db.query(CSVDiamond).filter(CSVDiamond.store_id == store_id)
 
-        # If no stone_type or no feed config, just return custom diamonds
-        data = await get_custom_diamonds(query_params)
+        if not store_settings.custom_feed:
+            if stone_type:
+                query = query.filter(CSVDiamond.type == stone_type)
 
-        return {"error": False, "data": data}
+        diamonds = query.all()
+
+        return {
+            "error": False,
+            "data": {
+                "diamonds": diamonds,
+                "pagination": {}
+            }
+        }
 diamonds = CRUDDiamonds(CSVDiamond)
