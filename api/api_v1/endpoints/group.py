@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, Request, HTTPException
-from sqlalchemy.orm import Session
-from api.dependencies import get_db, get_current_store
-from schemas.groups import GroupCreate
 import crud
+from sqlalchemy.orm import Session
+from schemas.groups import GroupCreate
+from api.dependencies import get_db, get_current_store
+from fastapi import APIRouter, Depends, Request, HTTPException
 
 router = APIRouter()
 

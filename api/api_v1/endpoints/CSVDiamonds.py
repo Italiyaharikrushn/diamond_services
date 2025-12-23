@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, Query
-from schemas.CSVDiamons import CSVDiamondCreate, BulkDeleteRequest
-from api.dependencies import get_db, get_current_store
-from sqlalchemy.orm import Session
 import crud
+from sqlalchemy.orm import Session
+from api.dependencies import get_db, get_current_store
+from schemas.CSVDiamons import CSVDiamondCreate, BulkDeleteRequest
+from fastapi import APIRouter, Depends, HTTPException, Request, Query
 router = APIRouter()
 
 # Create CSV Data
@@ -56,5 +56,5 @@ async def get_diamonds(request: Request, store_id: str | None = Query(None), db:
 
     return {
         "success": True,
-        "data": result["data"]
+        "data": result
     }

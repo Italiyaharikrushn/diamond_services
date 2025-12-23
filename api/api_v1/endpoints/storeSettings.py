@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, Request
 import crud
-from schemas.storesttings import StoreSettingsCreate
-from api.dependencies import get_db
 from sqlalchemy.orm import Session
+from api.dependencies import get_db
+from fastapi import APIRouter, Depends, Request
+from schemas.storesttings import StoreSettingsCreate
 
 router = APIRouter()
 

@@ -1,14 +1,15 @@
-from io import StringIO
 import csv
+from io import StringIO
 from loguru import logger
+from sqlalchemy import func
+from typing import Optional
 from crud.base import CRUDBase
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from models.csv_diamond import CSVDiamond
-from typing import Optional
-from fastapi import HTTPException
 from schemas.CSVDiamons import CSVDiamondCreate
-from sqlalchemy import func
 from models.storesettings import StoreSettings
+from services.diamond_service import get_custom_diamonds_service
 
 class CRUDDiamonds(CRUDBase):
     @staticmethod
@@ -117,7 +118,7 @@ class CRUDDiamonds(CRUDBase):
     def get_all(self, db: Session, store_id: str):
         return db.query(CSVDiamond).filter(CSVDiamond.store_id == store_id).all()
 
-    # get filter diamonds
+    # get filter Diamonds
     def get_diamonds_filter(self, db: Session, store_id: str, shopify_app: str, stone_type: str):
         try:
             feed_type = "CSV"
@@ -153,7 +154,7 @@ class CRUDDiamonds(CRUDBase):
             print(f"Error: {str(e)}")  # or use logging
             return { "success" : False, "Message" : "Error fetching filters", "error" : str(e) }
     
-    # Bulk Delete diamonds
+    # Bulk Delete Diamonds
     def delete_diamonds(self, db: Session, store_id: str, shopify_app: str, ids: list[int]):
         try:
             deleted = (
@@ -169,6 +170,7 @@ class CRUDDiamonds(CRUDBase):
                 "Success" : False, "error" : str(e)
             }
     
+    # All Delete Diamonds
     def all_delete_diamonds(self, db: Session, store_id: str, shopify_app: str):
         try:
             deleted = (
@@ -185,7 +187,8 @@ class CRUDDiamonds(CRUDBase):
             return {
                 "success": False, "error": str(e)
             }
-        
+
+    # Add Diamonds 
     async def get_diamonds(
         self,
         db: Session,
@@ -204,6 +207,7 @@ class CRUDDiamonds(CRUDBase):
                         "error": True, "status": 404, "message": "Store settings not found"
                     }
 
+        logger.info(f"STORE={store_id} | CUSTOM_FEED={store_settings.custom_feed}")
         if not store_settings.custom_feed:
             stone_type = query_params.get("type")
             if not stone_type:
@@ -213,19 +217,6 @@ class CRUDDiamonds(CRUDBase):
         else:
             stone_type = query_params.get("type")
 
-        logger.info(f"STORE={store_id} | CUSTOM_FEED={store_settings.custom_feed}")
-        query = db.query(CSVDiamond).filter(CSVDiamond.store_id == store_id)
-
-        if not store_settings.custom_feed and stone_type:
-            query = query.filter(CSVDiamond.type == stone_type)
-
-        diamonds = query.all()
-
-        return {
-            "error": False,
-            "data": {
-                "diamonds": diamonds,
-                "pagination": {}
-            }
-        }
+        result = await get_custom_diamonds_service(db=db, store_id=store_id, query_params=query_params)
+        return result
 diamonds = CRUDDiamonds(CSVDiamond)

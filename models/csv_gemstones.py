@@ -17,7 +17,7 @@ class CSVGemstone(Base):
     store_id = Column(String(50), nullable=False)
     shopify_name = Column(String(100), nullable=True)
     carat = Column(Float, nullable=False)
-    color = Column(String(10), nullable=False)
+    color = Column(String(100), nullable=False)
     clarity = Column(String(20), nullable=False)
     cut = Column(String(20), nullable=True)
     shape = Column(String(20), nullable=False)

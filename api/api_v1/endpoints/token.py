@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from util.token import create_custom_token
 from pydantic import BaseModel
+from util.token import create_custom_token
 
 router = APIRouter()
 

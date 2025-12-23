@@ -1,8 +1,8 @@
-from sqlalchemy.orm import Session
 from crud.base import CRUDBase
 from models.groups import Groups
-from models.groupoptions import GroupOptions
+from sqlalchemy.orm import Session
 from schemas.groups import GroupCreate
+from models.groupoptions import GroupOptions
 
 class CRUDGroup(CRUDBase[Groups, GroupCreate, None]):
 

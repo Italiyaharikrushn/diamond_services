@@ -1,11 +1,11 @@
 from typing import Optional
 from core.config import settings
 
+from jose import jwt
 from models.user import User
+from sqlalchemy.orm import Session
 from schemas.auth import RegisterSchema
 from datetime import datetime, timedelta
-from sqlalchemy.orm import Session
-from jose import jwt
 
 PREFIX = "Bearer"
 
