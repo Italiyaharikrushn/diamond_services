@@ -1,12 +1,12 @@
-from typing import Any, Dict, List, Optional, Union, TypeVar
-from fastapi.encoders import jsonable_encoder
-from sqlalchemy.orm import Session
 from sqlalchemy import func
-from crud.base import CRUDBase
 from models.user import User
+from crud.base import CRUDBase
 from db.base_class import Base
-from schemas.user import UserCreate, UserUpdate
+from sqlalchemy.orm import Session
 ModelType = TypeVar("ModelType", bound=Base)
+from fastapi.encoders import jsonable_encoder
+from schemas.user import UserCreate, UserUpdate
+from typing import Any, Dict, List, Optional, Union, TypeVar
 
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):

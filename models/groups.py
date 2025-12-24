@@ -1,6 +1,6 @@
 import uuid
-from sqlalchemy import Column, String, DateTime, func, VARCHAR
 from db.base_class import Base
+from sqlalchemy import Column, String, DateTime, func, VARCHAR
 
 class Groups(Base):
     __tablename__ = "groups"

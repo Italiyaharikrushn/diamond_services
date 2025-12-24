@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, func, UniqueConstraint
 from db.base_class import Base
+from sqlalchemy import Column, Integer, String, Float, DateTime, func, UniqueConstraint
 
 
 class CSVGemstone(Base):

@@ -1,6 +1,6 @@
 import uuid
-from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey, VARCHAR
 from db.base_class import Base
+from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey, VARCHAR
 
 class GroupOptions(Base):
     __tablename__ = "group_options"

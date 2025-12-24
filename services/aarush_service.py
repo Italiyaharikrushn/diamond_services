@@ -1,8 +1,8 @@
 import crud
 import httpx, asyncio
 from db.database import SessionLocal
-from schemas import IngestedDiamondCreate
 from services import finalize_ingestion
+from schemas import IngestedDiamondCreate
 from util.utils import build_basic_auth_header, normalize_color, normalize_clarity, AARUSH_BASE_URL, AARUSH_USERNAME, AARUSH_PASSWORD
 
 async def fetch_aarush_page(page: int):

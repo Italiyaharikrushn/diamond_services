@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, status, HTTPException
-from api.dependencies import get_db
-from schemas.auth import LoginSchema, RegisterSchema
-from sqlalchemy.orm import Session
-from datetime import timedelta, date
-from services.user_service import create_access_token, create_user, get_user_by_email
 from core.config import settings
+from sqlalchemy.orm import Session
+from api.dependencies import get_db
+from datetime import timedelta, date
+from schemas.auth import LoginSchema, RegisterSchema
+from fastapi import APIRouter, Depends, status, HTTPException
+from services.user_service import create_access_token, create_user, get_user_by_email
 router = APIRouter()
 
 

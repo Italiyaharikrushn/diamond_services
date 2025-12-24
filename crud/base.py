@@ -1,10 +1,8 @@
-from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
-from fastapi.encoders import jsonable_encoder
-from pydantic import BaseModel
-from models.user import User
-from sqlalchemy.orm import Session
 from db.base_class import Base
-from schemas.user import UserSearch
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from fastapi.encoders import jsonable_encoder
+from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 ModelType = TypeVar("ModelType", bound=Base)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)

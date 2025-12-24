@@ -1,6 +1,6 @@
-from sqlalchemy import Column, Integer, String, Enum, DateTime, Float, Boolean
-from core.enums import StoneType, Color, Clarity
 from db.base_class import Base
+from core.enums import StoneType, Color, Clarity
+from sqlalchemy import Column, Integer, String, Enum, DateTime, Float, Boolean
     
 class IngestedDiamonds(Base):
     id = Column(Integer, primary_key=True, index=True)
