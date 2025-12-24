@@ -1,5 +1,5 @@
 from db.base_class import Base
-from sqlalchemy import Column, Integer, String, DECIMAL
+from sqlalchemy import Column, Integer, String, DECIMAL, DateTime
 
 class DiamondPricing(Base):
     id = Column(Integer, primary_key=True, index=True)
@@ -7,3 +7,5 @@ class DiamondPricing(Base):
     store_id = Column(String(50), nullable=False)
     base_price = Column(DECIMAL(15, 2), nullable=False)
     selling_price = Column(DECIMAL(15, 2), nullable=False)
+    created_at = Column(DateTime, nullable=False)
+    updated_at = Column(DateTime, nullable=False)
