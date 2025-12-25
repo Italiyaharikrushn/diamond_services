@@ -5,14 +5,7 @@ from models.diamond_pricing import DiamondPricing
 from models.ingested_diamonds import IngestedDiamonds
 from services.diamond_pricing_service import create_diamond_pricing
 
-async def finalize_diamond_ingestion(
-    db: Session,
-    process_id: int,
-    process_starting_time,
-    source_name: str,
-    total_processed: int,
-    errors: list
-):
+async def finalize_diamond_ingestion( db: Session, process_id: int, process_starting_time, source_name: str, total_processed: int, errors: list, store_id: str):
     if errors:
         crud.diamond.update_ingestion_process(
             db,
@@ -26,7 +19,8 @@ async def finalize_diamond_ingestion(
 
     old_diamonds = db.query(IngestedDiamonds).filter(
         IngestedDiamonds.updated_at < process_starting_time,
-        IngestedDiamonds.source_name == source_name
+        IngestedDiamonds.source_name == source_name,
+        IngestedDiamonds.store_id == store_id
     ).all()
 
     old_ids = [d.id for d in old_diamonds]
@@ -44,21 +38,17 @@ async def finalize_diamond_ingestion(
 
     new_diamonds = db.query(IngestedDiamonds).filter(
         IngestedDiamonds.updated_at >= process_starting_time,
-        IngestedDiamonds.source_name == source_name
+        IngestedDiamonds.source_name == source_name,
+        IngestedDiamonds.store_id == store_id
     ).all()
 
-    create_diamond_pricing(
-        db=db,
-        diamonds=new_diamonds,
-        store_id="default_store",
-        shopify_name="default_shop"
-    )
+    create_diamond_pricing(db=db, diamonds=new_diamonds, store_id=store_id, shopify_name="default_shop")
 
     crud.diamond.update_ingestion_process(
         db,
         process_id,
         {
-            "status": "complated",
+            "status": "completed",
             "completed_at": datetime.utcnow(),
             "logs": errors
         }

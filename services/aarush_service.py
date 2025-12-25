@@ -20,7 +20,7 @@ async def fetch_aarush_page(page: int):
 
         return data.get("data", []), data.get("next_page_url")
 
-def map_aarush_item_to_diamond(item: dict):
+def map_aarush_item_to_diamond(item: dict, store_id: str):
     if not item or not item.get("cert_num"):
         return None
 
@@ -38,6 +38,7 @@ def map_aarush_item_to_diamond(item: dict):
     return IngestedDiamondCreate(
         source_diamond_id=item.get("stock_num",""),
         source_name="Aarush",
+        store_id=store_id,
         lab=item.get("lab","").upper(),
         type="lab",
         carat=float(item.get("size") or 0),
@@ -66,10 +67,7 @@ def map_aarush_item_to_diamond(item: dict):
         location=", ".join(filter(None,[item.get("city"),item.get("state"),item.get("country")]))
     )
 
-async def ingest_aarush_diamonds(
-    process_id: int,
-    process_starting_time
-):
+async def ingest_aarush_diamonds( process_id: int, process_starting_time, store_id: str):
     db = SessionLocal()
     try:
         page = 1
@@ -83,7 +81,7 @@ async def ingest_aarush_diamonds(
 
             diamonds = []
             for item in items:
-                d = map_aarush_item_to_diamond(item)
+                d = map_aarush_item_to_diamond(item, store_id)
                 if d:
                     diamonds.append(d)
 
@@ -112,7 +110,8 @@ async def ingest_aarush_diamonds(
             process_starting_time,
             "Aarush",
             total_processed,
-            errors
+            errors,
+            store_id
         )
     finally:
         db.close()

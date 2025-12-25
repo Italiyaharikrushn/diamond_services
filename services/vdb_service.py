@@ -19,7 +19,7 @@ def get_vdb_auth_header():
     }
 
 
-def map_vdb_item_to_diamond(item: dict):
+def map_vdb_item_to_diamond(item: dict, store_id: str):
     try:
         cert = item.get("cert_num")
         if not cert:
@@ -29,7 +29,7 @@ def map_vdb_item_to_diamond(item: dict):
             source_diamond_id=str(item.get("id")),
             source_name="VDB",
             source_stock_id=str(item.get("stock_num")) if item.get("stock_num") else None,
-            store_id=None,
+            store_id=store_id,
 
             lab=item.get("lab") or None,
             type="lab" if item.get("type") == "lab_grown_diamond" else "natural",
@@ -64,13 +64,10 @@ def map_vdb_item_to_diamond(item: dict):
     except Exception as e:
         return None
 
-async def ingest_vdb_diamonds(
-    process_id: int,
-    process_starting_time: datetime
-):
+async def ingest_vdb_diamonds( process_id: int, process_starting_time: datetime, store_id: str):
     
     page = 1
-    page_size = 50
+    page_size = 150
     total_processed = 0
     errors = []
 
@@ -118,7 +115,7 @@ async def ingest_vdb_diamonds(
 
             mapped_diamonds = []
             for item in diamonds:
-                d = map_vdb_item_to_diamond(item)
+                d = map_vdb_item_to_diamond(item, store_id)
                 if d:
                     mapped_diamonds.append(d)
 
@@ -150,7 +147,8 @@ async def ingest_vdb_diamonds(
             process_starting_time,
             "VDB",
             total_processed,
-            errors
+            errors,
+            store_id
         )
 
     except Exception as e:
