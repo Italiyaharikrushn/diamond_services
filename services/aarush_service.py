@@ -69,13 +69,18 @@ def map_aarush_item_to_diamond(item: dict, store_id: str):
 
 async def ingest_aarush_diamonds( process_id: int, process_starting_time, store_id: str):
     db = SessionLocal()
+    errors = []
     try:
         page = 1
         total_processed = 0
-        errors = []
 
         while True:
-            items, next_url = await fetch_aarush_page(page)
+            try:
+                items, next_url = await fetch_aarush_page(page)
+            except Exception as e:
+                errors.append({"page": page, "error": str(e)})
+                break
+
             if not items:
                 break
 
@@ -86,8 +91,8 @@ async def ingest_aarush_diamonds( process_id: int, process_starting_time, store_
                     diamonds.append(d)
 
             if diamonds:
-                result = crud.diamond.bulk_upsert_diamonds(db, diamonds)
-                total_processed += result["upserted"]
+                crud.diamond.bulk_upsert_diamonds(db, diamonds)
+                total_processed += len(diamonds)
 
                 crud.diamond.update_ingestion_process(
                     db,
@@ -112,6 +117,16 @@ async def ingest_aarush_diamonds( process_id: int, process_starting_time, store_
             total_processed,
             errors,
             store_id
+        )
+
+    except Exception as e:
+        crud.diamond.update_ingestion_process(
+            db,
+            process_id,
+            {
+                "status": "failed",
+                "logs": [{"fatal": str(e)}]
+            }
         )
     finally:
         db.close()
