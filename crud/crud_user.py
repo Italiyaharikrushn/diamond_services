@@ -3,11 +3,11 @@ from models.user import User
 from crud.base import CRUDBase
 from db.base_class import Base
 from sqlalchemy.orm import Session
-ModelType = TypeVar("ModelType", bound=Base)
 from fastapi.encoders import jsonable_encoder
 from schemas.user import UserCreate, UserUpdate
 from typing import Any, Dict, List, Optional, Union, TypeVar
 
+ModelType = TypeVar("ModelType", bound=Base)
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     def get(self, db: Session, id: Any) -> Optional[User]:
