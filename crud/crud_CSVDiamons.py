@@ -219,4 +219,5 @@ class CRUDDiamonds(CRUDBase):
 
         result = await get_custom_diamonds_service(db=db, store_id=store_id, query_params=query_params)
         return result
+
 diamonds = CRUDDiamonds(CSVDiamond)
