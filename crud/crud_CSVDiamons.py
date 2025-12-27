@@ -7,9 +7,9 @@ from crud.base import CRUDBase
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from models.csv_diamond import CSVDiamond
-from schemas.CSVDiamons import CSVDiamondCreate
 from models.storesettings import StoreSettings
-from services.diamond_service import get_custom_diamonds_service
+from schemas.CSVDiamons import CSVDiamondCreate
+from services.diamond_service import get_custom_diamonds_service, custom_filter_query, csv_filter_query, get_single_diamonds_service
 
 class CRUDDiamonds(CRUDBase):
     @staticmethod
@@ -219,5 +219,99 @@ class CRUDDiamonds(CRUDBase):
 
         result = await get_custom_diamonds_service(db=db, store_id=store_id, query_params=query_params)
         return result
+
+    # get diamonds with filter for store_id & type
+    async def get_diamonds_filter(self, db: Session, store_id: str, query_params: dict):
+        if not store_id:
+            raise {"error" : True, "message" : "store_id is required"}
+        
+        stone_type = query_params.get("type")
+        if not stone_type:
+            return {"error": True, "message": "'type' parameter is required"}
+        
+        store_settings = (db.query(StoreSettings).filter(StoreSettings.store_id == store_id).first())
+
+        if not store_settings:
+            return {"error": True, "message": "Store Settings not found"}
+
+        if store_settings.custom_feed:
+            (
+                colors,
+                clarities,
+                carat_min,
+                carat_max,
+                price_min,
+                price_max
+            ) = custom_filter_query(db, store_id, stone_type)
+
+        else:
+            (
+                colors,
+                clarities,
+                carat_min,
+                carat_max,
+                price_min,
+                price_max
+            ) = csv_filter_query(db, store_id, stone_type)
+
+        return {
+        "error": False,
+        "data": {
+            "colors": sorted(colors),
+            "clarities": sorted(clarities),
+            "price_range": {
+                "min": float(price_min) if price_min else 0,
+                "max": float(price_max) if price_max else 0
+            },
+            "carat_range": {
+                "min": carat_min or 0,
+                "max": carat_max or 0
+            }
+        }
+    }
+
+    # get diamonds with filter for store_id & type & id
+    async def get_diamond( self, db: Session, store_id: str, shopify_name: str | None, query_params: dict):
+        if not store_id:
+            return {"error": True, "status": 400, "message": "Store_id is required"}
+
+        store_settings = ( db.query(StoreSettings) .filter(StoreSettings.store_id == store_id) .first())
+
+        if not store_settings:
+            return {
+                "error": True,
+                "status": 404,
+                "message": "Store settings not found"
+            }
+
+        logger.info(
+            f"STORE={store_id} | CUSTOM_FEED={store_settings.custom_feed}"
+        )
+
+        stone_type = query_params.get("stone_type")
+        diamond_id = query_params.get("id")
+
+        # MAIN FIX → ID COMPULSORY
+        if not diamond_id:
+            return {
+                "error": True,
+                "status": 400,
+                "message": "'id' parameter is required"
+            }
+
+        # CSV feed ma stone_type compulsory
+        if not store_settings.custom_feed:
+            if not stone_type:
+                return {
+                    "error": True,
+                    "status": 400,
+                    "message": "'stone_type' parameter is required"
+                }
+
+        return await get_single_diamonds_service(
+            db=db,
+            store_id=store_id,
+            query_params=query_params
+        )
 
 diamonds = CRUDDiamonds(CSVDiamond)

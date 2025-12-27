@@ -7,11 +7,9 @@ from schemas.storesttings import StoreSettingsCreate
 router = APIRouter()
 
 @router.post("/store-settings", status_code=201)
-def create_store(request: Request, data: StoreSettingsCreate, db: Session = Depends(get_db)):
+def create_store( request: Request, data: StoreSettingsCreate, db: Session = Depends(get_db)):
     store_id = request.state.store_name
-    store = crud.storesettings.create(db=db, payload=data, store_id=store_id)
-    
-    return store
+    return crud.storesettings.create(db=db, payload=data, store_id=store_id)
 
 @router.get("/store-settings", response_model=dict)
 def get_store_settings(request: Request, db: Session = Depends(get_db)):

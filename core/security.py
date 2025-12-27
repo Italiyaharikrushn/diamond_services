@@ -36,7 +36,10 @@ def is_unauthorized_url(request: Request):
         "/auth/login",
         "/auth/register",
         "/token/generate-token",
-        "/diamonds/public/diamonds"
+        "/diamonds/public/diamonds",
+        "/diamonds/public/diamonds/filters",
+        "/diamonds/public/get-diamond",
+
     ]
 
     path = request.url.path

@@ -58,3 +58,43 @@ async def get_diamonds(request: Request, store_id: str | None = Query(None), db:
         "success": True,
         "data": result
     }
+
+# get diamonds with filter for store_id & type
+@router.get("/public/diamonds/filters", status_code=200)
+async def get_diamond_filters( request: Request, store_id: str | None = Query(None), db: Session = Depends(get_db)):
+    store_id = store_id or getattr(request.state, "store_id", None)
+
+    result = await crud.diamonds.get_diamonds_filter( db=db, store_id=store_id, query_params=dict(request.query_params))
+
+    if result["error"]:
+        return {"success": False, "message": result["message"]}
+
+    return {
+        "success": True,
+        "data": result["data"]
+    }
+
+# get diamonds with filter for store_id & type & id
+@router.get("/public/get-diamond", status_code=200)
+async def get_diamonds(
+    request: Request,
+    store_id: str | None = Query(None),
+    db: Session = Depends(get_db)
+):
+    store_id = store_id or getattr(request.state, "store_id", None)
+    shopify_app = getattr(request.state, "shopify_app", None)
+
+    result = await crud.diamonds.get_diamond(
+        db=db,
+        store_id=store_id,
+        shopify_name=shopify_app,
+        query_params=dict(request.query_params)
+    )
+
+    if result["error"]:
+        return {"success": False, "message": result["message"]}
+
+    return {
+        "success": True,
+        "data": result
+    }
