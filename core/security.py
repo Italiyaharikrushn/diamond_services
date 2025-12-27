@@ -39,6 +39,7 @@ def is_unauthorized_url(request: Request):
         "/diamonds/public/diamonds",
         "/diamonds/public/diamonds/filters",
         "/diamonds/public/get-diamond",
+        "/gemstones/public/gemstones",
 
     ]
 

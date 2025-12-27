@@ -1,8 +1,9 @@
 import crud
 from sqlalchemy.orm import Session
 from api.dependencies import get_db, get_current_store
-from fastapi import APIRouter, Depends, HTTPException, Request
+from middlewares.check_feed import check_feed
 from schemas.CSVGemstone import CSVGemstoneCreate, BulkDeleteRequest
+from fastapi import APIRouter, Depends, HTTPException, Request, Query
 router = APIRouter()
 
 # Create CSV Data
@@ -41,3 +42,22 @@ def soft_delete_all_gemstones( shopify_app: str, db: Session = Depends(get_db), 
     result = crud.gemstone.all_delete_gemstones( db=db, store_id=store_name, shopify_app=shopify_app)
 
     return result
+
+@router.get("/public/gemstones", status_code=200)
+async def get_gemstones( request: Request, _: None = Depends(check_feed), store_id: str | None = Query(None), db: Session = Depends(get_db)):
+    store_id = store_id or getattr(request.state, "store_id", None)
+    shopify_app = getattr(request.state, "shopify_app", None)
+    feed_config = request.state.feed_config
+
+    result = await crud.gemstone.get_gemstones( db=db, store_id=store_id, shopify_app=shopify_app, query_params=dict(request.query_params),feed_config=feed_config)
+
+    if result["error"]:
+        return {
+            "success": False,
+            "message": result.get("message", "Something went wrong")
+        }
+
+    return {
+        "success": True,
+        "data": result
+    }

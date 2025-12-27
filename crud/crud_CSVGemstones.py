@@ -1,4 +1,5 @@
 import csv
+import logging
 from io import StringIO
 from typing import Optional
 from sqlalchemy import func
@@ -7,6 +8,9 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from models.csv_gemstones import CSVGemstone
 from schemas.CSVGemstone import CSVGemstoneCreate
+from services.csv_gemstones import get_csv_gemstones
+
+logger = logging.getLogger(__name__)
 
 class CRUDGemstones(CRUDBase):
     @staticmethod
@@ -178,9 +182,7 @@ class CRUDGemstones(CRUDBase):
     # All Delete Gemstone
     def all_delete_gemstones(self, db: Session, store_id: str, shopify_app: str):
         try:
-            deleted = (
-                db.query(CSVGemstone).filter(CSVGemstone.store_id == store_id,func.lower(CSVGemstone.shopify_name) == shopify_app.lower(),CSVGemstone.status == 1).delete(synchronize_session=False)
-            )
+            deleted = (db.query(CSVGemstone).filter(CSVGemstone.store_id == store_id,func.lower(CSVGemstone.shopify_name) == shopify_app.lower(),CSVGemstone.status == 1).delete(synchronize_session=False))
 
             db.commit()
 
@@ -194,5 +196,26 @@ class CRUDGemstones(CRUDBase):
                 "success": False, "error": str(e)
             }
 
+    async def get_gemstones( self, db: Session, store_id: str, shopify_app: str | None, query_params: dict, feed_config: dict):
+        stone_type = query_params.get("type")
+
+        if not stone_type:
+            return {"error": True, "message": "'type' is required"}
+
+        if stone_type not in feed_config:
+            return {
+                "error": True,
+                "message": f"feed_config not found for {stone_type}"
+            }
+
+        config_type = feed_config[stone_type]["type"]
+
+        if config_type == "CSV":
+            return await get_csv_gemstones( db=db, store_id=store_id, shopify_app=shopify_app, query_params=query_params)
+
+        return {
+            "error": True,
+            "message": f"{config_type} feed not supported"
+        }
 
 gemstone = CRUDGemstones(CSVGemstone)
