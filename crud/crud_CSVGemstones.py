@@ -218,4 +218,198 @@ class CRUDGemstones(CRUDBase):
             "message": f"{config_type} feed not supported"
         }
 
+    async def get_gemstone_filters(
+        self,
+        db: Session,
+        store_id: str,
+        shopify_app: str | None,
+    ):
+        try:
+            query = db.query(CSVGemstone).filter(
+                CSVGemstone.store_id == store_id
+            )
+
+            if shopify_app:
+                query = query.filter(CSVGemstone.shopify_app == shopify_app)
+
+            colors = (
+                query.with_entities(CSVGemstone.color)
+                .distinct()
+                .order_by(CSVGemstone.color.asc())
+                .all()
+            )
+
+            clarities = (
+                query.with_entities(CSVGemstone.clarity)
+                .distinct()
+                .order_by(CSVGemstone.clarity.asc())
+                .all()
+            )
+
+            price_range = db.query(
+                func.min(CSVGemstone.selling_price),
+                func.max(CSVGemstone.selling_price)
+            ).filter(
+                CSVGemstone.store_id == store_id
+            )
+
+            if shopify_app:
+                price_range = price_range.filter(
+                    CSVGemstone.shopify_app == shopify_app
+                )
+
+            min_price, max_price = price_range.first()
+
+            carat_range = db.query(
+                func.min(CSVGemstone.carat),
+                func.max(CSVGemstone.carat)
+            ).filter(
+                CSVGemstone.store_id == store_id
+            )
+
+            if shopify_app:
+                carat_range = carat_range.filter(
+                    CSVGemstone.shopify_app == shopify_app
+                )
+
+            min_carat, max_carat = carat_range.first()
+
+            return {
+                "error": False,
+                "data": {
+                    "colors": [c[0] for c in colors if c[0]],
+                    "clarities": [c[0] for c in clarities if c[0]],
+                    "price_range": {
+                        "min": float(min_price) if min_price else 0,
+                        "max": float(max_price) if max_price else 0
+                    },
+                    "carat_range": {
+                        "min": float(min_carat) if min_carat else 0,
+                        "max": float(max_carat) if max_carat else 0
+                    }
+                }
+            }
+
+        except Exception as e:
+            logger.error("Get gemstone filters error", exc_info=True)
+            return {
+                "error": True,
+                "message": str(e)
+            }
+        
+    async def get_gemstone_by_id(
+        self,
+        db: Session,
+        id: int,
+        store_id: str,
+        shopify_app: str | None,
+        stone_type: str | None,
+        custom_feed: bool,
+        feed_config: dict
+    ):
+        try:
+            if custom_feed:
+                logger.warning("Custom feed not yet supported for gemstones")
+                return {
+                    "error": True,
+                    "message": "Custom feed not yet supported for gemstones"
+                }
+
+            if not stone_type:
+                return {
+                    "error": True,
+                    "message": "stone_type is required"
+                }
+
+            if not feed_config or stone_type not in feed_config:
+                logger.error(f"feed_config not found for stone_type: {stone_type}")
+                return {
+                    "error": True,
+                    "message": f"feed_config not found for stone_type: {stone_type}"
+                }
+
+            config_type = feed_config[stone_type].get("type")
+
+            if not config_type:
+                return {
+                    "error": True,
+                    "message": f"stone_type not found in feed_config for stone_type: {stone_type}"
+                }
+
+            logger.info(
+                f"Getting gemstone id={id}, store={store_id}, "
+                f"stone_type={stone_type}, config_type={config_type}"
+            )
+
+            if config_type == "CSV":
+                query = db.query(CSVGemstone).filter(
+                    CSVGemstone.id == id,
+                    CSVGemstone.store_id == store_id
+                )
+
+                if shopify_app:
+                    query = query.filter(CSVGemstone.shopify_app == shopify_app)
+
+                gemstone = query.first()
+
+            elif config_type == "VDB":
+                logger.warning("VDB feed not yet supported for gemstones")
+                return {
+                    "error": True,
+                    "message": "VDB feed not yet supported for gemstones"
+                }
+
+            else:
+                return {
+                    "error": True,
+                    "message": f"Unsupported config type: {config_type} for stone_type: {stone_type}"
+                }
+
+            if not gemstone:
+                return {
+                    "error": True,
+                    "message": "gemstone not found"
+                }
+
+            data = {
+                "id": gemstone.id,
+                "lab": gemstone.lab,
+                "type": gemstone.type,
+                "sub_type": gemstone.sub_type,
+                "carat": gemstone.carat,
+                "color": gemstone.color,
+                "clarity": gemstone.clarity,
+                "cut": gemstone.cut,
+                "shape": gemstone.shape,
+                "selling_price": gemstone.selling_price,
+                "certificate_number": gemstone.certificate_no,
+                "origin": gemstone.origin,
+                "description": gemstone.description,
+                "image_source": gemstone.image_source or "",
+                "video_source": gemstone.video_source,
+                "is_available": gemstone.is_available,
+                "fluorescence": gemstone.fluorescence,
+                "table": gemstone.table,
+                "depth": gemstone.depth,
+                "girdle": gemstone.girdle,
+                "bgm": gemstone.bgm,
+                "treatment": gemstone.treatment,
+                "culet": gemstone.culet,
+                "measurements": gemstone.measurements,
+                "polish": gemstone.polish,
+                "symmetry": gemstone.symmetry,
+            }
+
+            return {
+                "error": False,
+                "data": data
+            }
+
+        except Exception as e:
+            logger.error("Get gemstone error", exc_info=True)
+            return {
+                "error": True,
+                "message": str(e)
+            }
+
 gemstone = CRUDGemstones(CSVGemstone)

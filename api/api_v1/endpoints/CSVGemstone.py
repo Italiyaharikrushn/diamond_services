@@ -61,3 +61,57 @@ async def get_gemstones( request: Request, _: None = Depends(check_feed), store_
         "success": True,
         "data": result
     }
+
+@router.get("/public/gemstones/filters", status_code=200)
+async def gemstone_filters( request: Request, _: None = Depends(check_feed), store_id: str | None = Query(None), db: Session = Depends(get_db)):
+    store_id = store_id or getattr(request.state, "store_id", None)
+    shopify_app = getattr(request.state, "shopify_app", None)
+
+    if not store_id:
+        return {
+            "success": False,
+            "message": "store_id is required"
+        }
+
+    result = await crud.gemstone.get_gemstone_filters(
+        db=db,
+        store_id=store_id,
+        shopify_app=shopify_app,
+    )
+
+    if result["error"]:
+        return {
+            "success": False,
+            "message": result.get("message", "Something went wrong")
+        }
+
+    return {
+        "success": True,
+        "data": result["data"]
+    }
+
+@router.get("/public/gemstones/get-gemstone", status_code=200)
+async def get_gemstone( request: Request, _: None = Depends(check_feed), id: int | None = Query(None), stone_type: str | None = Query(None), store_id: str | None = Query(None), db: Session = Depends(get_db),):
+    store_id = store_id or getattr(request.state, "store_id", None)
+    shopify_app = getattr(request.state, "shopify_app", None)
+    custom_feed = request.state.custom_feed
+    feed_config = request.state.feed_config
+
+    if not id:
+        return {
+            "success": False,
+            "message": "id is required"
+        }
+
+    result = await crud.gemstone.get_gemstone_by_id( db=db, id=id, store_id=store_id, shopify_app=shopify_app, stone_type=stone_type, custom_feed=custom_feed, feed_config=feed_config)
+
+    if result["error"]:
+        return {
+            "success": False,
+            "message": result.get("message", "Something went wrong")
+        }
+
+    return {
+        "success": True,
+        "data": result["data"]
+    }
