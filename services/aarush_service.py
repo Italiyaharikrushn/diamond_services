@@ -5,6 +5,7 @@ from services import finalize_ingestion
 from schemas import IngestedDiamondCreate
 from util.utils import build_basic_auth_header, normalize_color, normalize_clarity, AARUSH_BASE_URL, AARUSH_USERNAME, AARUSH_PASSWORD
 
+# Fetch Aarush API Page
 async def fetch_aarush_page(page: int):
     print("CALLING AARUSH API PAGE:", page)
 
@@ -20,6 +21,7 @@ async def fetch_aarush_page(page: int):
 
         return data.get("data", []), data.get("next_page_url")
 
+# Map Aarush item to IngestedDiamondCreate schema
 def map_aarush_item_to_diamond(item: dict, store_id: str):
     if not item or not item.get("cert_num"):
         return None
@@ -67,6 +69,7 @@ def map_aarush_item_to_diamond(item: dict, store_id: str):
         location=", ".join(filter(None,[item.get("city"),item.get("state"),item.get("country")]))
     )
 
+# Ingest Aarush Diamonds
 async def ingest_aarush_diamonds( process_id: int, process_starting_time, store_id: str):
     db = SessionLocal()
     errors = []

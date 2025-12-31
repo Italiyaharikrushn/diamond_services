@@ -11,14 +11,14 @@ VDB_API_URL = "https://apiservices.vdbapp.com/v2/diamonds"
 VDB_API_KEY = "pct_Akg7zZ0009eFf9JBV00zsw"
 VDB_ACCESS_TOKEN = "00WyNRCJ_qXV2mtSPS1vPWMzbH9LW4zUGGnAuEHKsjg"
 
-
+# Get VDB Auth Header
 def get_vdb_auth_header():
     return {
         "Content-Type": "application/json",
         "Authorization": f"Token token={VDB_ACCESS_TOKEN}, api_key={VDB_API_KEY}"
     }
 
-
+# Map VDB item to IngestedDiamondCreate schema
 def map_vdb_item_to_diamond(item: dict, store_id: str):
     try:
         cert = item.get("cert_num")
@@ -64,6 +64,7 @@ def map_vdb_item_to_diamond(item: dict, store_id: str):
     except Exception as e:
         return None
 
+# Ingest VDB Diamonds
 async def ingest_vdb_diamonds( process_id: int, process_starting_time: datetime, store_id: str):
     
     page = 1

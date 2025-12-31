@@ -7,6 +7,7 @@ from schemas.order import OrderCreate
 
 class CRUDOrder(CRUDBase):
 
+    # Create Order
     def create_order(self, db: Session, order: OrderCreate):
         app_used = False
         diamonds_price = 0
@@ -59,6 +60,7 @@ class CRUDOrder(CRUDBase):
         db.refresh(db_order)
         return db_order
     
+    # Get Orders
     def get_orders(
         self,
         db: Session,

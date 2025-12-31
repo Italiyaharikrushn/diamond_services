@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from models.stone_margin import StoneMargin
 from models.diamond_pricing import DiamondPricing
 
+# Calculate Selling Price
 def calculate_selling_price(db: Session, diamond, store_id: str):
     base_price = float(diamond.price)
     margin_value = 0
@@ -22,7 +23,7 @@ def calculate_selling_price(db: Session, diamond, store_id: str):
     selling_price = base_price + (base_price * margin_value / 100)
     return base_price, selling_price
 
-
+# Generate Diamond Pricing
 def generate_diamond_pricing(db: Session, diamonds, store_id: str):
     now = datetime.utcnow()
 

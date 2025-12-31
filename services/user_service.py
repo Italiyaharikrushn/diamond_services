@@ -9,11 +9,11 @@ from datetime import datetime, timedelta
 
 PREFIX = "Bearer"
 
-
+# Get User by Email
 def get_user_by_email(db: Session, email: str):
     return db.query(User).filter(User.email == email).all()
 
-
+# Create User
 def create_user(db: Session, register_schema: RegisterSchema):
     expiry_date = datetime.now() + timedelta(90)
     user = User(
@@ -29,11 +29,11 @@ def create_user(db: Session, register_schema: RegisterSchema):
     db.refresh(user)
     return user
 
-
+# Get Active User by Email
 def get_user_by_email_active(db: Session, email: str):
     return db.query(User).filter(User.email == email).all()
 
-
+# Create Access Token
 def create_access_token(claim: dict, expires_delta: Optional[timedelta] = None):
 
     to_encode = claim.copy()
@@ -45,7 +45,7 @@ def create_access_token(claim: dict, expires_delta: Optional[timedelta] = None):
     jwt_token = jwt.encode(to_encode, settings.SECRET_KEY, settings.ALGORITHM)
     return jwt_token
 
-
+# Decode Access Token
 def decode_access_token(token):
     payload = None
     try:
@@ -61,7 +61,7 @@ def decode_access_token(token):
 
     return payload
 
-
+# Get Token from Header
 def get_token(header):
     bearer, _, token = header.partition(" ")
     if bearer != PREFIX:

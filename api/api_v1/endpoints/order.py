@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 router = APIRouter()
 
-
+# Create Order
 @router.post("/public/create-order", status_code=201)
 def create_order(order: OrderCreate, db: Session = Depends(get_db)):
     if not order.store_id or not order.shopify_app:
@@ -31,6 +31,7 @@ def create_order(order: OrderCreate, db: Session = Depends(get_db)):
         }
     }
 
+# Get Orders
 @router.get("/public/get-orders")
 def get_orders(
     store_id: Optional[str] = Query(None),

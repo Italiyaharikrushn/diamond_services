@@ -6,6 +6,7 @@ from models.csv_gemstones import CSVGemstone
 
 logger = logging.getLogger(__name__)
 
+# Get CSV Gemstones
 async def get_csv_gemstones( db: Session, store_id: str, shopify_app: str | None, query_params: dict):
     try:
         page = int(query_params.get("page", 1))
@@ -17,7 +18,7 @@ async def get_csv_gemstones( db: Session, store_id: str, shopify_app: str | None
         )
 
         if shopify_app:
-            query = query.filter(CSVGemstone.shopify_app == shopify_app)
+            query = query.filter(CSVGemstone.shopify_name == shopify_app)
 
         # filters
         if query_params.get("carat_min"):

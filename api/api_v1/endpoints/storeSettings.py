@@ -6,11 +6,13 @@ from schemas.storesttings import StoreSettingsCreate
 
 router = APIRouter()
 
+# CRUD Store Settings
 @router.post("/store-settings", status_code=201)
 def create_store( request: Request, data: StoreSettingsCreate, db: Session = Depends(get_db)):
     store_id = request.state.store_name
     return crud.storesettings.create(db=db, payload=data, store_id=store_id)
 
+# Get Store Settings
 @router.get("/store-settings", response_model=dict)
 def get_store_settings(request: Request, db: Session = Depends(get_db)):
     store_id = request.state.store_name
@@ -23,6 +25,7 @@ def get_store_settings(request: Request, db: Session = Depends(get_db)):
     }
     return response
 
+# Delete Store Settings
 @router.delete("/store-settings", status_code=200)
 def delete_store_settings(request: Request, db: Session = Depends(get_db)):
     store_id = request.state.store_name

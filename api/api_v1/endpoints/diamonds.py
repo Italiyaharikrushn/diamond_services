@@ -8,6 +8,7 @@ from services.vdb_service import ingest_vdb_diamonds
 
 router = APIRouter()
 
+# Ingest all diamonds from multiple sources
 @router.get("/public/ingest/all")
 async def ingest_all_diamonds(db: Session = Depends(get_db), store_id: str | None = Query(None)):
     running_process = crud.diamond.get_running_process(db)
@@ -45,6 +46,7 @@ async def ingest_all_diamonds(db: Session = Depends(get_db), store_id: str | Non
         "status": "running"
     }
 
+# Get ingestion process by id
 @router.get("/public/ingest/process/{process_id}")
 async def get_ingestion_process(process_id: int, db: Session = Depends(get_db)):
     process = crud.diamond.get_ingestion_process(db, process_id)
@@ -68,6 +70,7 @@ async def get_ingestion_process(process_id: int, db: Session = Depends(get_db)):
         "progress_percentage": (process.processed_items / process.total_items * 100) if process.total_items > 0 else 0,
     }
 
+# Get all ingestion processes
 @router.get("/public/ingest/processes")
 async def get_ingestion_processes(db: Session = Depends(get_db)):
     processes = crud.diamond.get_ingestion_processes(db)

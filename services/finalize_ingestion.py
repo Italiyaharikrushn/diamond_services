@@ -5,6 +5,7 @@ from models.diamond_pricing import DiamondPricing
 from models.ingested_diamonds import IngestedDiamonds
 from services.diamond_pricing_service import create_diamond_pricing
 
+# Finalize Diamond Ingestion
 async def finalize_diamond_ingestion( db: Session, process_id: int, process_starting_time, source_name: str, total_processed: int, errors: list, store_id: str):
     if errors:
         crud.diamond.update_ingestion_process(

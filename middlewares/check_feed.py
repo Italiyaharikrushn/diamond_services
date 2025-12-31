@@ -7,6 +7,7 @@ from fastapi import Request, HTTPException, Depends
 
 logger = logging.getLogger(__name__)
 
+# Middleware to check feed configuration
 async def check_feed(request: Request, db: Session = Depends(get_db)):
     store_id = (
         request.query_params.get("store_id")

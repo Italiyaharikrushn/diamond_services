@@ -7,6 +7,7 @@ from models.groupoptions import GroupOptions
 
 class CRUDGroup(CRUDBase[Groups, GroupCreate, None]):
 
+    # Create Group with options
     def create(self, db: Session, payload: GroupCreate, store_id: str):
         group = Groups(
             store_id=store_id,
@@ -33,12 +34,14 @@ class CRUDGroup(CRUDBase[Groups, GroupCreate, None]):
         db.commit()
         return group
 
+    # Get All Groups
     def get_all(self, db: Session, store_id: str):
         groups = db.query(Groups).filter(Groups.store_id == store_id).all()
         for group in groups:
             group.options = db.query(GroupOptions).filter(GroupOptions.group_id == group.id).all()
         return groups
 
+    # Get Group by ID
     def get_by_id(self, db: Session, store_id: str, group_id: str):
         group = db.query(Groups).filter(Groups.store_id == store_id, Groups.id == group_id).first()
 
@@ -49,6 +52,7 @@ class CRUDGroup(CRUDBase[Groups, GroupCreate, None]):
 
         return group
     
+    # Delete Group by ID
     def delete_by_id(self, db: Session, store_id: str, group_id: str):
         try:
             # delete_group = (db.query(Groups).filter(Groups.store_id == store_id, Groups.id == group_id).update({"status": 0}, synchronize_session=False))
@@ -65,6 +69,7 @@ class CRUDGroup(CRUDBase[Groups, GroupCreate, None]):
             db.rollback()
             return {"success": False, "error": str(e)}
 
+    # Get Groups for a Product
     def get_groups_for_product(
         self,
         db: Session,

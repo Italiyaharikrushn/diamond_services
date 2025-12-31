@@ -196,6 +196,7 @@ class CRUDGemstones(CRUDBase):
                 "success": False, "error": str(e)
             }
 
+    # Get Gemstones
     async def get_gemstones( self, db: Session, store_id: str, shopify_app: str | None, query_params: dict, feed_config: dict):
         stone_type = query_params.get("type")
 
@@ -218,6 +219,7 @@ class CRUDGemstones(CRUDBase):
             "message": f"{config_type} feed not supported"
         }
 
+    # Get Gemstone Filters
     async def get_gemstone_filters(
         self,
         db: Session,
@@ -296,7 +298,8 @@ class CRUDGemstones(CRUDBase):
                 "error": True,
                 "message": str(e)
             }
-        
+
+    # Get Gemstone by ID
     async def get_gemstone_by_id(
         self,
         db: Session,

@@ -8,6 +8,7 @@ from schemas.StoneMargin import StoneMarginCreate, StoneMarginResponse
 
 class CRUDStonemargin(CRUDBase):
 
+    # Create Stone Margin
     def create(self, db: Session, obj_in: StoneMarginCreate) -> StoneMarginResponse:
         if not obj_in.store_id:
             raise HTTPException(status_code=400, detail="store_id is required")
@@ -104,6 +105,7 @@ class CRUDStonemargin(CRUDBase):
             db.rollback()
             raise HTTPException(status_code=500, detail=str(e))
 
+    # Get Stone Margins
     def get_stone(self, db: Session, store_id: str):
         margins = db.query(StoneMargin).filter(
             StoneMargin.store_id == store_id

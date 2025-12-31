@@ -43,6 +43,7 @@ def soft_delete_all_gemstones( shopify_app: str, db: Session = Depends(get_db), 
 
     return result
 
+# Public gemstones
 @router.get("/public/gemstones", status_code=200)
 async def get_gemstones( request: Request, _: None = Depends(check_feed), store_id: str | None = Query(None), db: Session = Depends(get_db)):
     store_id = store_id or getattr(request.state, "store_id", None)
@@ -62,6 +63,7 @@ async def get_gemstones( request: Request, _: None = Depends(check_feed), store_
         "data": result
     }
 
+# Public gemstone filters
 @router.get("/public/gemstones/filters", status_code=200)
 async def gemstone_filters( request: Request, _: None = Depends(check_feed), store_id: str | None = Query(None), db: Session = Depends(get_db)):
     store_id = store_id or getattr(request.state, "store_id", None)
@@ -90,6 +92,7 @@ async def gemstone_filters( request: Request, _: None = Depends(check_feed), sto
         "data": result["data"]
     }
 
+# Public get gemstone by id
 @router.get("/public/gemstones/get-gemstone", status_code=200)
 async def get_gemstone( request: Request, _: None = Depends(check_feed), id: int | None = Query(None), stone_type: str | None = Query(None), store_id: str | None = Query(None), db: Session = Depends(get_db),):
     store_id = store_id or getattr(request.state, "store_id", None)

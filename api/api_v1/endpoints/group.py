@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Request, HTTPException, Query
 
 router = APIRouter()
 
+# Create Group with options
 @router.post("/create-product", status_code=201)
 def create_group(request: Request, payload: GroupCreate, db: Session = Depends(get_db)):
     group = crud.group.create(db=db, payload=payload, store_id=request.state.store_name)
@@ -15,12 +16,14 @@ def create_group(request: Request, payload: GroupCreate, db: Session = Depends(g
         "group_id": group.id
     }
 
+# Get All Groups
 @router.get("/get-all", status_code=200)
 def get_all_groups(db:Session = Depends(get_db), store_name: str = Depends(get_current_store)):
     groups = crud.group.get_all(db=db, store_id = store_name)
 
     return groups
 
+# Get Group by ID
 @router.get("/get-by-id/{group_id}", status_code=200)
 def get_group_by_id(group_id: str, db: Session = Depends(get_db), store_name: str = Depends(get_current_store)):
     group = crud.group.get_by_id(db=db, store_id=store_name, group_id=group_id)
@@ -29,6 +32,7 @@ def get_group_by_id(group_id: str, db: Session = Depends(get_db), store_name: st
     
     return group
 
+# Delete Group by ID
 @router.delete("/delete-by-id/{group_id}", status_code=200)
 def delete_group_by_id(group_id: str, db: Session = Depends(get_db), store_name: str = Depends(get_current_store)):
     result = crud.group.delete_by_id(db=db, store_id=store_name, group_id=group_id)
@@ -36,6 +40,7 @@ def delete_group_by_id(group_id: str, db: Session = Depends(get_db), store_name:
         raise HTTPException(status_code=404, detail="Group not found or already deleted")
     return {"detail": "Group deleted successfully"}
 
+# Public Endpoint: Get Groups for a Product
 @router.get("/public/get-groups-for-product")
 def get_groups_for_product(
     product_id: str = Query(..., description="ID of the product"),

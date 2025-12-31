@@ -220,6 +220,7 @@ async def get_single_diamonds_service(
         }
     }
 
+# Get CSV filter query
 def csv_filter_query(db: Session, store_id: str, stone_type: str):
     base_query = db.query(CSVDiamond).filter(
         CSVDiamond.store_id == store_id,
@@ -250,6 +251,7 @@ def csv_filter_query(db: Session, store_id: str, stone_type: str):
 
     return colors, clarities, carat_min, carat_max, price_min, price_max
 
+# Get Ingested Diamonds filter query
 def custom_filter_query(db: Session, store_id: str, stone_type: str):
     diamond_query = db.query(IngestedDiamonds).filter(
         IngestedDiamonds.store_id == store_id,

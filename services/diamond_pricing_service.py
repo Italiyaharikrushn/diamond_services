@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from models.diamond_pricing import DiamondPricing
 from services.pricing_engine import calculate_selling_price
 
+# Create Diamond Pricing
 def create_diamond_pricing(db: Session, diamonds, store_id: str, shopify_name: str):
     now = datetime.utcnow()
 
