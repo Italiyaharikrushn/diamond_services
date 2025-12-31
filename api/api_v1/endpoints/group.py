@@ -2,7 +2,7 @@ import crud
 from sqlalchemy.orm import Session
 from schemas.groups import GroupCreate
 from api.dependencies import get_db, get_current_store
-from fastapi import APIRouter, Depends, Request, HTTPException
+from fastapi import APIRouter, Depends, Request, HTTPException, Query
 
 router = APIRouter()
 
@@ -35,3 +35,22 @@ def delete_group_by_id(group_id: str, db: Session = Depends(get_db), store_name:
     if result is None:
         raise HTTPException(status_code=404, detail="Group not found or already deleted")
     return {"detail": "Group deleted successfully"}
+
+@router.get("/public/get-groups-for-product")
+def get_groups_for_product(
+    product_id: str = Query(..., description="ID of the product"),
+    shopify_app: str = Query(..., description="Shopify app name"),
+    store_id: str = Query(..., description="Store ID"),
+    db: Session = Depends(get_db)
+):
+    groups = crud.group.get_groups_for_product(
+        db=db,
+        shopify_app=shopify_app,
+        store_id=store_id,
+        product_id=product_id
+    )
+
+    if not groups:
+        return {"success": True, "data": [], "message": "No groups found for this product"}
+
+    return {"success": True, "data": groups}

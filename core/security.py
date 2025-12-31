@@ -35,16 +35,31 @@ def is_unauthorized_url(request: Request):
         "/openapi.json",
         "/auth/login",
         "/auth/register",
+
+        # Token endpoints
         "/token/generate-token",
+
+        # Diamond endpoints
         "/diamonds/public/diamonds",
         "/diamonds/public/diamonds/filters",
         "/diamonds/public/get-diamond",
+
+        # Gemstone endpoints
         "/gemstones/public/gemstones",
         "/gemstones/public/gemstones/filters",
         "/gemstones/public/gemstones/get-gemstone",
+
+        # Ingest endpoints
         "/diamond/public/ingest/all",
         "/diamond/public/ingest/process/{process_id}",
         "/diamond/public/ingest/processes",
+
+        # Order endpoints
+        "/order/public/create-order",
+        "/order/public/get-orders",
+
+        # Group endpoints
+        "/group/public/get-groups-for-product"
 
     ]
 

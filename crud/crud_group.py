@@ -1,3 +1,4 @@
+from typing import List
 from crud.base import CRUDBase
 from models.groups import Groups
 from sqlalchemy.orm import Session
@@ -63,5 +64,61 @@ class CRUDGroup(CRUDBase[Groups, GroupCreate, None]):
         except Exception as e:
             db.rollback()
             return {"success": False, "error": str(e)}
+
+    def get_groups_for_product(
+        self,
+        db: Session,
+        shopify_app: str,
+        store_id: str,
+        product_id: str
+    ) -> List[dict]:
+        # Step 1: get unique group_ids from GroupOptions
+        group_options = db.query(GroupOptions.group_id).filter(
+            GroupOptions.shopify_name == shopify_app,
+            GroupOptions.store_id == store_id,
+            GroupOptions.product_id == product_id
+        ).distinct().all()
+
+        group_ids = [g.group_id for g in group_options]
+
+        if not group_ids:
+            return []
+
+        # Step 2: get Groups
+        groups = db.query(Groups).filter(
+            Groups.shopify_name == shopify_app,
+            Groups.store_id == store_id,
+            Groups.id.in_(group_ids)
+        ).all()
+
+        # Step 3: manually attach options for each group
+        result = []
+        for group in groups:
+            options = db.query(GroupOptions).filter(
+                GroupOptions.group_id == group.id,
+                GroupOptions.shopify_name == shopify_app,
+                GroupOptions.store_id == store_id,
+                GroupOptions.product_id == product_id
+            ).all()
+
+            group_dict = {
+                "id": group.id,
+                "group_name": group.group_name,
+                "type": group.type,
+                "store_id": group.store_id,
+                "shopify_name": group.shopify_name,
+                "options": [
+                    {
+                        "id": opt.id,
+                        "product_id": opt.product_id,
+                        "color_code": opt.color_code,
+                        "image_url": opt.image_url,
+                        "position": opt.position
+                    } for opt in options
+                ]
+            }
+            result.append(group_dict)
+
+        return result
         
 group = CRUDGroup(Groups)

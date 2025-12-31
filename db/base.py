@@ -10,3 +10,4 @@ from models.storesettings import StoreSettings
 from models.diamond_pricing import DiamondPricing
 from models.ingested_diamonds import IngestedDiamonds
 from models.ingestion_process import IngestionProcess
+from models.order import Order
