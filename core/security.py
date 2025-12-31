@@ -42,6 +42,9 @@ def is_unauthorized_url(request: Request):
         "/gemstones/public/gemstones",
         "/gemstones/public/gemstones/filters",
         "/gemstones/public/gemstones/get-gemstone",
+        "/diamond/public/ingest/all",
+        "/diamond/public/ingest/process/{process_id}",
+        "/diamond/public/ingest/processes",
 
     ]
 
@@ -50,8 +53,16 @@ def is_unauthorized_url(request: Request):
     if path.startswith("/static"):
         return True
 
+    # Direct match
     if path in allow_urls:
         return True
+
+    for allowed in allow_urls:
+        if "{" in allowed and "}" in allowed:
+            prefix = allowed.split("{", 1)[0].rstrip("/")
+            if path.startswith(prefix):
+                return True
+
     return False
 
 def get_token(header: str):

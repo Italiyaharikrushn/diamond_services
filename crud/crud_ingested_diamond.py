@@ -14,6 +14,14 @@ class CRUDDiamond(CRUDBase):
             IngestionProcess.status.in_(["running", "price_calculation"])
         ).first()
     
+    def get_ingestion_process(self, db: Session, process_id: int):
+        return db.query(IngestionProcess).filter(
+            IngestionProcess.id == process_id
+        ).first()
+
+    def get_ingestion_processes(self, db: Session):
+        return db.query(IngestionProcess).all()
+
     def create_ingestion_process(self, db: Session, process_type: str, processSubType: str, origin: str):
         process = IngestionProcess(
             process_type=process_type,
