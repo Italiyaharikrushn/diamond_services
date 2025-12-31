@@ -67,7 +67,7 @@ def map_vdb_item_to_diamond(item: dict, store_id: str):
 async def ingest_vdb_diamonds( process_id: int, process_starting_time: datetime, store_id: str):
     
     page = 1
-    page_size = 150
+    page_size = 50
     total_processed = 0
     errors = []
 
