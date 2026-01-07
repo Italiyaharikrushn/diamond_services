@@ -18,11 +18,11 @@ class CSVDiamondBase(BaseModel):
     certificate_no: str
     origin: Optional[str] = None
     description: Optional[str] = None
-    image_source: str
-    video_source: str
+    image_source: Optional[str] = None
+    video_source: Optional[str] = None
     is_available: str
-    vendor: str
-    measurements: str
+    vendor: Optional[str] = None
+    measurements: Optional[str] = None
     polish: Optional[str] = None
     symmetry: Optional[str] = None
     fluorescence: Optional[str] = None
@@ -32,7 +32,7 @@ class CSVDiamondBase(BaseModel):
     bgm: Optional[str] = None
     treatment: Optional[str] = None
     culet: Optional[str] = None
-    location: str
+    location: Optional[str] = None
 
 class CSVDiamondCreate(BaseModel):
     csv_data: str

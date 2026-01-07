@@ -6,6 +6,7 @@ from typing import Optional
 from crud.base import CRUDBase
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from models.csv_diamond import CSVDiamond
 from models.storesettings import StoreSettings
 from schemas.CSVDiamons import CSVDiamondCreate
@@ -21,14 +22,13 @@ class CRUDDiamonds(CRUDBase):
 
     # Create CSV Data
     def create(self, db: Session, obj_in: CSVDiamondCreate, store_id: str):
-        try:
-            csv_reader = csv.DictReader(StringIO(obj_in.csv_data))
-            model_fields = set(CSVDiamond.__table__.columns.keys())
+        csv_reader = csv.DictReader(StringIO(obj_in.csv_data))
+        model_fields = set(CSVDiamond.__table__.columns.keys())
 
-            diamonds = []
-            updated_diamonds = []
-            created_diamonds = []
-            
+        duplicate_found = False
+        any_change = False
+
+        try:
             for row in csv_reader:
                 mapped = {}
 
@@ -36,83 +36,66 @@ class CRUDDiamonds(CRUDBase):
                     k = key.lower().replace(" ", "_")
 
                     if k in model_fields:
-                        mapped[k] = self.safe_float(value) if k in {"carat", "price", "selling_price", "table", "depth"} else (
-                            None if value in (None, "", "None") else value
-                        )
+                        if k in {"carat", "price", "selling_price", "table", "depth"}:
+                            mapped[k] = self.safe_float(value)
+                        else:
+                            mapped[k] = value if value not in ("", None, "None") else None
 
-                mapped["s_no"] = row.get("Stone No") if row.get("Stone No") else None
+                if not mapped.get("certificate_no"):
+                    continue
 
                 mapped.setdefault("origin", "Unknown")
-                mapped.setdefault("description", "No description available")
+                mapped.setdefault("description", "No description")
                 mapped.setdefault("selling_price", mapped.get("price"))
                 mapped.setdefault("is_available", "Yes")
                 mapped.setdefault("status", 1)
 
                 mapped["store_id"] = store_id
 
-                existing_diamond = db.query(CSVDiamond).filter_by(certificate_no=mapped["certificate_no"], store_id=store_id).first()
+                existing = (db.query(CSVDiamond).filter_by(certificate_no=mapped["certificate_no"], store_id=store_id).first())
 
-                if existing_diamond:
-                    updated = False
+                if existing:
+                    changed = False
 
                     for key, value in mapped.items():
-                        if key == "certificate_no":
-                            continue
+                        if hasattr(existing, key) and getattr(existing, key) != value:
+                            setattr(existing, key, value)
+                            changed = True
 
-                        old_value = getattr(existing_diamond, key, None)
+                    if changed:
+                        any_change = True
+                    else:
+                        duplicate_found = True
 
-                        if value != old_value:
-                            setattr(existing_diamond, key, value)
-                            updated = True
-
-                    if not updated:
-                        # SAME DATA + SAME CERTIFICATE + SAME STORE
-                        raise HTTPException(
-                            status_code=400,
-                            detail=f"Duplicate certificate '{mapped['certificate_no']}' not allowed for this store"
-                        )
-
-                    updated_diamonds.append(existing_diamond)
-                    diamonds.append(existing_diamond)
                 else:
-                    new_diamond = CSVDiamond(**mapped)
-                    created_diamonds.append(new_diamond)
-                    diamonds.append(new_diamond)
+                    db.add(CSVDiamond(**mapped))
+                    any_change = True
 
-            db.bulk_save_objects(diamonds)
             db.commit()
 
-            response = {
-                "created_diamonds": [
-                {
-                    "certificate_no": d.certificate_no,
-                    "s_no": d.s_no,
-                    "carat": d.carat,
-                    "price": d.price,
-                    "selling_price": d.selling_price,
-                    "description": d.description,
-                    "origin": d.origin,
-                } for d in created_diamonds
-            ],
-            "updated_diamonds": [
-                {
-                    "id": d.id,
-                    "certificate_no": d.certificate_no,
-                    "s_no": d.s_no,
-                    "carat": d.carat,
-                    "price": d.price,
-                    "selling_price": d.selling_price,
-                    "description": d.description,
-                    "origin": d.origin,
-                } for d in updated_diamonds
-            ],
-            }
+            if any_change:
+                return {
+                    "success": True,
+                    "message": "CSV uploaded successfully"
+                }
 
-            return response
+            if duplicate_found:
+                return {
+                    "success": False,
+                    "message": "Already exists"
+                }
+
+            return {
+                "success": True,
+                "message": "CSV processed"
+            }
 
         except Exception as e:
             db.rollback()
-            raise HTTPException(status_code=500, detail=f"Error creating diamonds: {str(e)}")
+            return {
+                "success": False,
+                "message": str(e)
+            }
 
     # get All CSV Data
     def get_all(self, db: Session, store_id: str):
