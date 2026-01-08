@@ -98,44 +98,87 @@ class CRUDDiamonds(CRUDBase):
             }
 
     # get All CSV Data
-    def get_all(self, db: Session, store_id: str):
-        return db.query(CSVDiamond).filter(CSVDiamond.store_id == store_id).all()
+    def get_all( self, db: Session, store_id: str, stone_type: str | None = None, color: str | None = None, clarity: str | None = None ):
+        query = db.query(CSVDiamond).filter(CSVDiamond.store_id == store_id)
+
+        if stone_type:
+            query = query.filter(CSVDiamond.type == stone_type)
+
+        if color:
+            query = query.filter(CSVDiamond.color == color)
+
+        if clarity:
+            query = query.filter(CSVDiamond.clarity == clarity)
+
+        return query.all()
 
     # get filter Diamonds
-    def get_diamonds_filter(self, db: Session, store_id: str, shopify_app: str, stone_type: str):
+    def get_diamonds_filter( self, db: Session, store_id: str, shopify_name: str | None = None, stone_type: str | None = None,):
         try:
-            feed_type = "CSV"
-            filter_data = {}
-            base_filter = [
-                CSVDiamond.store_id == store_id,
-                CSVDiamond.shopify_name == shopify_app,
+            base_filters = [
+                CSVDiamond.store_id == store_id
             ]
 
+            if shopify_name:
+                base_filters.append(CSVDiamond.shopify_name == shopify_name)
+
             if stone_type:
-                base_filter.append(CSVDiamond.type == stone_type.lower())
+                base_filters.append(CSVDiamond.type == stone_type)
 
+            colors = (
+                db.query(func.distinct(CSVDiamond.color))
+                .filter(*base_filters)
+                .order_by(CSVDiamond.color.asc())
+                .all()
+            )
 
-            if feed_type == "CUSTOM":
-                colors = db.query(func.distinct(CSVDiamond.color).label("color")).filter(*base_filter).all()
-                clarities = db.query(func.distinct(CSVDiamond.clarity).label("clarity")).filter(*base_filter).all()
-            else:
-                colors = db.query(func.distinct(CSVDiamond.color)).filter(*base_filter).order_by(CSVDiamond.color.asc()).all()
-                clarities = db.query(func.distinct(CSVDiamond.clarity)).filter(*base_filter).order_by(CSVDiamond.clarity.asc()).all()
+            clarities = (
+                db.query(func.distinct(CSVDiamond.clarity))
+                .filter(*base_filters)
+                .order_by(CSVDiamond.clarity.asc())
+                .all()
+            )
 
-            price_min, price_max = db.query(func.min(CSVDiamond.price), func.max(CSVDiamond.price)).filter(*base_filter).first()
-            carat_min, carat_max = db.query(func.min(CSVDiamond.carat), func.max(CSVDiamond.carat)).filter(*base_filter).first()
+            price_min, price_max = (
+                db.query(
+                    func.min(CSVDiamond.selling_price),
+                    func.max(CSVDiamond.selling_price),
+                )
+                .filter(*base_filters)
+                .first()
+            )
 
-            filter_data = {
-                "colors": [c[0] for c in colors if c[0]],
-                "clarities": [c[0] for c in clarities if c[0]],
-                "price_range": {"min": float(price_min or 0), "max": float(price_max or 0)},
-                "carat_range": {"min": float(carat_min or 0), "max": float(carat_max or 0)},
+            carat_min, carat_max = (
+                db.query(
+                    func.min(CSVDiamond.carat),
+                    func.max(CSVDiamond.carat),
+                )
+                .filter(*base_filters)
+                .first()
+            )
+
+            return {
+                "success": True,
+                "data": {
+                    "colors": [c[0] for c in colors if c[0]],
+                    "clarities": [c[0] for c in clarities if c[0]],
+                    "price_range": {
+                        "min": float(price_min or 0),
+                        "max": float(price_max or 0),
+                    },
+                    "carat_range": {
+                        "min": float(carat_min or 0),
+                        "max": float(carat_max or 0),
+                    },
+                },
             }
 
-            return { "success" : True, "data" : filter_data }
         except Exception as e:
-            print(f"Error: {str(e)}")  # or use logging
-            return { "success" : False, "Message" : "Error fetching filters", "error" : str(e) }
+            print("FILTER ERROR:", e)
+            return {
+                "success": False,
+                "message": "Failed to fetch filters",
+            }
     
     # Bulk Delete Diamonds
     def delete_diamonds(self, db: Session, store_id: str, shopify_app: str, ids: list[int]):
@@ -204,7 +247,7 @@ class CRUDDiamonds(CRUDBase):
         return result
 
     # get diamonds with filter for store_id & type
-    async def get_diamonds_filter(self, db: Session, store_id: str, query_params: dict):
+    async def get_diamond_filter(self, db: Session, store_id: str, query_params: dict):
         if not store_id:
             raise {"error" : True, "message" : "store_id is required"}
         
