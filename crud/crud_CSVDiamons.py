@@ -181,38 +181,46 @@ class CRUDDiamonds(CRUDBase):
             }
     
     # Bulk Delete Diamonds
-    def delete_diamonds(self, db: Session, store_id: str, shopify_app: str, ids: list[int]):
+    def delete_diamonds(self, db: Session, store_id: str, shopify_name: str, ids: list[int]):
+        if not ids:
+            return {"success": False, "error": "No IDs provided"}
+
         try:
             deleted = (
-                db.query(CSVDiamond).filter(CSVDiamond.id.in_(ids), CSVDiamond.store_id == store_id, CSVDiamond.shopify_name == shopify_app).delete(synchronize_session=False)
+                db.query(CSVDiamond)
+                .filter(
+                    CSVDiamond.id.in_(ids),
+                    CSVDiamond.store_id == store_id,
+                    func.lower(CSVDiamond.shopify_name) == shopify_name.lower()
+                )
+                .delete(synchronize_session=False)
             )
-            db.commit()
-            return {
-                "success" : True, "Deleted_cont" : deleted
-            }
-        except Exception as e :
-            db.rollback()
-            return {
-                "Success" : False, "error" : str(e)
-            }
-    
-    # All Delete Diamonds
-    def all_delete_diamonds(self, db: Session, store_id: str, shopify_app: str):
-        try:
-            deleted = (
-                db.query(CSVDiamond).filter(CSVDiamond.store_id == store_id,func.lower(CSVDiamond.shopify_name) == shopify_app.lower(),CSVDiamond.status == 1).delete(synchronize_session=False))
 
             db.commit()
-
-            return {
-                "success": True, "Updated_count": deleted
-            }
+            return {"success": True, "deleted_count": deleted}
 
         except Exception as e:
             db.rollback()
-            return {
-                "success": False, "error": str(e)
-            }
+            return {"success": False, "error": str(e)}
+    
+    # All Delete Diamonds
+    def delete_all(self, db: Session, store_id: str, shopify_name: str):
+        try:
+            deleted = (
+                db.query(CSVDiamond)
+                .filter(
+                    CSVDiamond.store_id == store_id,
+                    func.lower(CSVDiamond.shopify_name) == shopify_name.lower()
+                )
+                .delete(synchronize_session=False)
+            )
+
+            db.commit()
+            return {"success": True, "deleted_count": deleted}
+
+        except Exception as e:
+            db.rollback()
+            return {"success": False, "error": str(e)}
 
     # Add Diamonds 
     async def get_diamonds(

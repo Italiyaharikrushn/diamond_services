@@ -41,18 +41,13 @@ def diamonds_filters( db: Session = Depends(get_db), store_name: str = Depends(g
 
 # Delete Bulk Data
 @router.delete("/bulk-delete", status_code=200)
-def bulk_delete_diamonds(payload: BulkDeleteRequest, shopify_app: str, db: Session = Depends(get_db), store_name: str = Depends(get_current_store)):
-    result = crud.diamonds.delete_diamonds(db=db, store_id=store_name, shopify_app=shopify_app, ids=payload.ids)
-    if not result["success"]:
-        raise HTTPException(status_code=500, detail=result["error"])
-    return result
+def bulk_delete_diamonds( payload: BulkDeleteRequest, shopify_name: str, db: Session = Depends(get_db), store_name: str = Depends(get_current_store)):
+    return crud.diamonds.delete_diamonds(db, store_name, shopify_name, payload.ids)
 
 # Delete All Data
 @router.delete("/all-delete", status_code=200)
-def all_delete_diamonds( shopify_app: str, db: Session = Depends(get_db), store_name: str = Depends(get_current_store)):
-    result = crud.diamonds.all_delete_diamonds( db=db, store_id=store_name, shopify_app=shopify_app)
-
-    return result
+def all_delete_diamonds( shopify_name: str, db: Session = Depends(get_db), store_name: str = Depends(get_current_store)):
+    return crud.diamonds.delete_all(db, store_name, shopify_name)
 
 # get diamonds public routes
 @router.get("/public/diamonds", status_code=200)
