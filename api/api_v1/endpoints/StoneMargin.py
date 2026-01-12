@@ -10,8 +10,7 @@ router = APIRouter()
 @router.post("/stone_margin", status_code=201, response_model=StoneMarginResponse)
 def crud_stone_margin(data: StoneMarginCreate, db: Session = Depends(get_db), store_name: str = Depends(get_current_store)):
     data.store_id = store_name
-    margin = crud.margin.create(db=db, obj_in=data)
-    return margin
+    return crud.margin.create(db=db, obj_in=data)
 
 # Get Stone Margin
 @router.get("/stone_margin", status_code=200, response_model=dict)
