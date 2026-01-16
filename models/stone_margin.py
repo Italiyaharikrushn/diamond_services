@@ -18,7 +18,6 @@ class StoneMargin(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     store_id = Column(String(255), nullable=False)
-    shopify_name = Column(String(255), nullable=False)
     type = Column(Enum(StoneType, name="stone_type"),nullable=False)
     unit = Column(Enum(StoneUnit, name="stone_unit"),nullable=False)
     start = Column(Float, nullable=False)

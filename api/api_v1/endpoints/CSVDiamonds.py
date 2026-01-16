@@ -18,11 +18,11 @@ def get_all(
     stone_type: str | None = None,
     color: str | None = None,
     clarity: str | None = None,
-    store_name: str = Depends(get_current_store),
+    current_store_id: str = Depends(get_current_store),
 ):
     data = crud.diamonds.get_all(
         db=db,
-        store_id=store_name,
+        store_id=current_store_id,
         stone_type=stone_type,
         color=color,
         clarity=clarity,

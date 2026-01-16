@@ -14,7 +14,6 @@ class CRUDStonemargin(CRUDBase):
         total_updated = 0
         db.query(StoneMargin).filter(
             StoneMargin.store_id == obj_in.store_id,
-            StoneMargin.shopify_name == obj_in.shopify_name,
             StoneMargin.type == stone_type,
             StoneMargin.unit == obj_in.unit
         ).delete()
@@ -25,7 +24,6 @@ class CRUDStonemargin(CRUDBase):
             
             db_obj = StoneMargin(
                 store_id=obj_in.store_id,
-                shopify_name=obj_in.shopify_name,
                 type=stone_type,
                 unit=obj_in.unit,
                 start=r.start,
@@ -37,7 +35,6 @@ class CRUDStonemargin(CRUDBase):
             updated_count = SellingPriceService.apply_margin(
                 db=db,
                 store_id=obj_in.store_id,
-                shopify_name=obj_in.shopify_name,
                 stone_type=stone_type,
                 unit=obj_in.unit,
                 start=r.start,

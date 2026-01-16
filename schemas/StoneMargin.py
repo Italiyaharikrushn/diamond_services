@@ -10,7 +10,6 @@ class StoneMarginBase(BaseModel):
         orm_mode = True
 
 class StoneMarginCreate(BaseModel):
-    shopify_name: str
     type: str
     unit: str
     ranges: List[StoneMarginBase]

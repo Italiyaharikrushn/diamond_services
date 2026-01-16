@@ -8,7 +8,6 @@ class SellingPriceService:
     def apply_margin(
         db: Session,
         store_id: str,
-        shopify_name: str,
         stone_type: str,
         unit: str,
         start: float,
@@ -20,7 +19,6 @@ class SellingPriceService:
 
         query = db.query(Model).filter(
             Model.store_id == store_id,
-            Model.shopify_name == shopify_name,
             func.lower(Model.type) == stone_type.lower(),
             Model.status == 1
         )

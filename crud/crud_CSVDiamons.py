@@ -99,6 +99,9 @@ class CRUDDiamonds(CRUDBase):
 
     # get All CSV Data
     def get_all( self, db: Session, store_id: str, stone_type: str | None = None, color: str | None = None, clarity: str | None = None ):
+        if not store_id:
+            return []
+
         query = db.query(CSVDiamond).filter(CSVDiamond.store_id == store_id)
 
         if stone_type:
