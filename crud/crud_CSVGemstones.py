@@ -118,16 +118,25 @@ class CRUDGemstones(CRUDBase):
             raise HTTPException(status_code=500, detail=f"Error creating gemstones: {str(e)}")
 
     # Get All CSV Data
-    def get_all(self, db: Session, store_id: str):
-        return db.query(CSVGemstone).filter(CSVGemstone.store_id == store_id).all()
+    def get_all(self, db: Session, store_id: str, color: Optional[str] = None, clarity: Optional[str] = None, stone_type: Optional[str] = None):
+        query = db.query(CSVGemstone).filter(CSVGemstone.store_id == store_id)
+
+        if color:
+            query = query.filter(CSVGemstone.color == color)
+        if clarity:
+            query = query.filter(CSVGemstone.clarity == clarity)
+        if stone_type:
+            query = query.filter(CSVGemstone.type == stone_type)
+
+        return query.all()
 
     # get Filter gemstone
-    def get_gemstone_filter(self, db: Session, store_id: str, shopify_name: str):
+    def get_gemstone_filter(self, db: Session, store_id: str, shopify_name: Optional[str] = None):
         try:
             Base_filter = [
-                CSVGemstone.store_id == store_id,
-                CSVGemstone.shopify_name == shopify_name
-            ]
+                CSVGemstone.store_id == store_id]
+            if shopify_name:
+                Base_filter.append(CSVGemstone.shopify_name == shopify_name)
 
             colors = (
                 db.query(func.distinct(CSVGemstone.color).label("color")).filter(*Base_filter).order_by(CSVGemstone.color.asc()).all()
@@ -221,12 +230,7 @@ class CRUDGemstones(CRUDBase):
         }
 
     # Get Gemstone Filters
-    async def get_gemstone_filters(
-        self,
-        db: Session,
-        store_id: str,
-        shopify_name: str | None,
-    ):
+    async def get_gemstone_filters( self, db: Session, store_id: str, shopify_name: str | None):
         try:
             query = db.query(CSVGemstone).filter(
                 CSVGemstone.store_id == store_id
@@ -281,7 +285,7 @@ class CRUDGemstones(CRUDBase):
                 "error": False,
                 "data": {
                     "colors": [c[0] for c in colors if c[0]],
-                    "clarities": [c[0] for c in clarities if c[0]],
+                    "clarity": [c[0] for c in clarities if c[0]],
                     "price_range": {
                         "min": float(min_price) if min_price else 0,
                         "max": float(max_price) if max_price else 0

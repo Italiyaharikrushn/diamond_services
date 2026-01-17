@@ -1,3 +1,4 @@
+from typing import Optional
 import crud
 from sqlalchemy.orm import Session
 from api.dependencies import get_db, get_current_store
@@ -14,13 +15,13 @@ def create_gemstone(request: Request, gemstones: CSVGemstoneCreate, db: Session 
 
 # Get All CSV Data
 @router.get("/all-gemstones", status_code=200)
-def get_all(db:Session = Depends(get_db), store_name: str = Depends(get_current_store)):
-    data = crud.gemstone.get_all(db=db, store_id = store_name)
+def get_all(color: Optional[str] = None, clarity: Optional[str] = None, stone_type: Optional[str] = None, db:Session = Depends(get_db), store_name: str = Depends(get_current_store)):
+    data = crud.gemstone.get_all(db=db, store_id = store_name, color=color, clarity=clarity, stone_type=stone_type)
     return data
 
 # Get Filter Data
 @router.get("/filters", status_code=200)
-def gemstone_filters(shopify_name: str, db: Session = Depends(get_db), store_name: str = Depends(get_current_store)):
+def gemstone_filters(shopify_name: Optional[str] = None, db: Session = Depends(get_db), store_name: str = Depends(get_current_store)):
     result = crud.gemstone.get_gemstone_filter(db, store_name, shopify_name)
 
     if not result.get("success"):
