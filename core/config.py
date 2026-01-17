@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = os.getenv('SECRET_KEY','1f4cd5d9-504f-443e-9f85-181a1ed230d0')
     REFRESH_SECRET_KEY: str = os.getenv('REFRESH_SECRET_KEY','1f4cd5d9-504f-443e-9f85-181a1ed230d0')
     ALGORITHM: str = os.getenv('ALGORITHM','HS256')
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 600
     EXTERNAL_JWT_SECRET: str
     EXTERNAL_JWT_DEST: str
     JWT_SECRET: ClassVar[str] = "qwertyuiopasdfghjklzxcvbnmmnbvcxzlkjhgfdsapoiuytrewq"

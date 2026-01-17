@@ -21,7 +21,7 @@ class CRUDDiamonds(CRUDBase):
             return default
 
     # Create CSV Data
-    def create(self, db: Session, obj_in: CSVDiamondCreate, store_id: str):
+    def create(self, db: Session, obj_in: CSVDiamondCreate, store_id: str, shopify_name: str = None):
         csv_reader = csv.DictReader(StringIO(obj_in.csv_data))
         model_fields = set(CSVDiamond.__table__.columns.keys())
 
@@ -51,6 +51,10 @@ class CRUDDiamonds(CRUDBase):
                 mapped.setdefault("status", 1)
 
                 mapped["store_id"] = store_id
+                mapped["shopify_name"] = shopify_name
+
+                if "certificate_no" not in mapped or not mapped["certificate_no"]:
+                    continue
 
                 existing = (db.query(CSVDiamond).filter_by(certificate_no=mapped["certificate_no"], store_id=store_id).first())
 

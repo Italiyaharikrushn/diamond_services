@@ -2,13 +2,13 @@ import crud
 from sqlalchemy.orm import Session
 from api.dependencies import get_db, get_current_store
 from schemas.CSVDiamons import CSVDiamondCreate, BulkDeleteRequest
-from fastapi import APIRouter, Depends, HTTPException, Request, Query
+from fastapi import APIRouter, Depends, Request, Query
 router = APIRouter()
 
 # Create CSV Data
 @router.post("/csv/upload", status_code=201)
 def create_diamonds(request: Request, diamonds: CSVDiamondCreate, db: Session = Depends(get_db)):
-    created_diamonds = crud.diamonds.create(db=db, obj_in=diamonds, store_id=request.state.store_name)
+    created_diamonds = crud.diamonds.create(db=db, obj_in=diamonds, store_id=request.state.store_name, shopify_name=request.state.shopify_name)
     return created_diamonds
 
 # Get All CSV Data

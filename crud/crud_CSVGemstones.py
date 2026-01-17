@@ -21,7 +21,7 @@ class CRUDGemstones(CRUDBase):
             return default
 
     # Create CSV Data
-    def create(self, db: Session, obj_in: CSVGemstoneCreate, store_id: str):
+    def create(self, db: Session, obj_in: CSVGemstoneCreate, store_id: str, shopify_name: str = None):
         try:
             csv_reader = csv.DictReader(StringIO(obj_in.csv_data))
             model_fields = set(CSVGemstone.__table__.columns.keys())
@@ -49,6 +49,7 @@ class CRUDGemstones(CRUDBase):
                 mapped.setdefault("status", 1)
 
                 mapped["store_id"] = store_id
+                mapped["shopify_name"] = shopify_name
 
                 existing_gemstone = db.query(CSVGemstone).filter_by(certificate_no=mapped["certificate_no"], store_id=store_id).first()
 
@@ -121,11 +122,11 @@ class CRUDGemstones(CRUDBase):
         return db.query(CSVGemstone).filter(CSVGemstone.store_id == store_id).all()
 
     # get Filter gemstone
-    def get_gemstone_filter(self, db: Session, store_id: str, shopify_app: str):
+    def get_gemstone_filter(self, db: Session, store_id: str, shopify_name: str):
         try:
             Base_filter = [
                 CSVGemstone.store_id == store_id,
-                CSVGemstone.shopify_name == shopify_app
+                CSVGemstone.shopify_name == shopify_name
             ]
 
             colors = (
@@ -164,10 +165,10 @@ class CRUDGemstones(CRUDBase):
             }
 
     # Bulk Delete Gemstone
-    def bulk_delete_gemstones(self, db: Session, store_id: str, shopify_app: str, ids: list[int]):
+    def bulk_delete_gemstones(self, db: Session, store_id: str, shopify_name: str, ids: list[int]):
         try:
             deleted = (
-                db.query(CSVGemstone).filter(CSVGemstone.id.in_(ids), CSVGemstone.store_id == store_id, CSVGemstone.shopify_name == shopify_app).delete(synchronize_session=False)
+                db.query(CSVGemstone).filter(CSVGemstone.id.in_(ids), CSVGemstone.store_id == store_id, CSVGemstone.shopify_name == shopify_name).delete(synchronize_session=False)
             )
             db.commit()
             return {
@@ -180,9 +181,9 @@ class CRUDGemstones(CRUDBase):
             }
         
     # All Delete Gemstone
-    def all_delete_gemstones(self, db: Session, store_id: str, shopify_app: str):
+    def all_delete_gemstones(self, db: Session, store_id: str, shopify_name: str):
         try:
-            deleted = (db.query(CSVGemstone).filter(CSVGemstone.store_id == store_id,func.lower(CSVGemstone.shopify_name) == shopify_app.lower(),CSVGemstone.status == 1).delete(synchronize_session=False))
+            deleted = (db.query(CSVGemstone).filter(CSVGemstone.store_id == store_id,func.lower(CSVGemstone.shopify_name) == shopify_name.lower(),CSVGemstone.status == 1).delete(synchronize_session=False))
 
             db.commit()
 
@@ -197,7 +198,7 @@ class CRUDGemstones(CRUDBase):
             }
 
     # Get Gemstones
-    async def get_gemstones( self, db: Session, store_id: str, shopify_app: str | None, query_params: dict, feed_config: dict):
+    async def get_gemstones( self, db: Session, store_id: str, shopify_name: str | None, query_params: dict, feed_config: dict):
         stone_type = query_params.get("type")
 
         if not stone_type:
@@ -212,7 +213,7 @@ class CRUDGemstones(CRUDBase):
         config_type = feed_config[stone_type]["type"]
 
         if config_type == "CSV":
-            return await get_csv_gemstones( db=db, store_id=store_id, shopify_app=shopify_app, query_params=query_params)
+            return await get_csv_gemstones( db=db, store_id=store_id, shopify_name=shopify_name, query_params=query_params)
 
         return {
             "error": True,
@@ -224,15 +225,15 @@ class CRUDGemstones(CRUDBase):
         self,
         db: Session,
         store_id: str,
-        shopify_app: str | None,
+        shopify_name: str | None,
     ):
         try:
             query = db.query(CSVGemstone).filter(
                 CSVGemstone.store_id == store_id
             )
 
-            if shopify_app:
-                query = query.filter(CSVGemstone.shopify_app == shopify_app)
+            if shopify_name:
+                query = query.filter(CSVGemstone.shopify_name == shopify_name)
 
             colors = (
                 query.with_entities(CSVGemstone.color)
@@ -255,9 +256,9 @@ class CRUDGemstones(CRUDBase):
                 CSVGemstone.store_id == store_id
             )
 
-            if shopify_app:
+            if shopify_name:
                 price_range = price_range.filter(
-                    CSVGemstone.shopify_app == shopify_app
+                    CSVGemstone.shopify_name == shopify_name
                 )
 
             min_price, max_price = price_range.first()
@@ -269,9 +270,9 @@ class CRUDGemstones(CRUDBase):
                 CSVGemstone.store_id == store_id
             )
 
-            if shopify_app:
+            if shopify_name:
                 carat_range = carat_range.filter(
-                    CSVGemstone.shopify_app == shopify_app
+                    CSVGemstone.shopify_name == shopify_name
                 )
 
             min_carat, max_carat = carat_range.first()
@@ -305,7 +306,7 @@ class CRUDGemstones(CRUDBase):
         db: Session,
         id: int,
         store_id: str,
-        shopify_app: str | None,
+        shopify_name: str | None,
         stone_type: str | None,
         custom_feed: bool,
         feed_config: dict
@@ -350,8 +351,8 @@ class CRUDGemstones(CRUDBase):
                     CSVGemstone.store_id == store_id
                 )
 
-                if shopify_app:
-                    query = query.filter(CSVGemstone.shopify_app == shopify_app)
+                if shopify_name:
+                    query = query.filter(CSVGemstone.shopify_name == shopify_name)
 
                 gemstone = query.first()
 

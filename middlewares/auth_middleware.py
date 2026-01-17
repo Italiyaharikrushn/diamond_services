@@ -28,6 +28,7 @@ class AuthMiddleWare(BaseHTTPMiddleware):
         if store_payload:
             store = store_payload.get("dest", "").replace("https://", "")
             request.state.store_name = store
+            request.state.shopify_name = store_payload.get("shopify_name", None)
             request.state.current_user = None
             return await call_next(request)
 
