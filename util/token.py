@@ -4,9 +4,10 @@ from core.config import settings
 
 PREFIX = "Bearer"
 
-def create_custom_token(store_name: str):
+def create_custom_token(store_name: str, shopify_name: str = None):
     payload = {
         "dest": store_name,
+        "shopify_name": shopify_name,
         "exp": datetime.utcnow() + timedelta(seconds=settings.JWT_EXPIRY)
     }
     
