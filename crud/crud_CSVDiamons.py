@@ -25,74 +25,85 @@ class CRUDDiamonds(CRUDBase):
         csv_reader = csv.DictReader(StringIO(obj_in.csv_data))
         model_fields = set(CSVDiamond.__table__.columns.keys())
 
-        duplicate_found = False
-        any_change = False
+        added_count = 0
 
         try:
             for row in csv_reader:
+                row_cleaned = {k.lower().strip().replace(" ", "_"): v for k, v in row.items()}
                 mapped = {}
 
-                for key, value in row.items():
-                    k = key.lower().replace(" ", "_")
+                field_mapping = {
+                    "stone_no": "s_no",
+                    "availability": "is_available",
+                    "measurement": "measurements",
+                }
 
-                    if k in model_fields:
-                        if k in {"carat", "price", "selling_price", "table", "depth"}:
-                            mapped[k] = self.safe_float(value)
+                for k, value in row_cleaned.items():
+                    db_key = field_mapping.get(k, k)
+                    if db_key in model_fields:
+                        if db_key in {"carat", "price", "selling_price", "table", "depth"}:
+                            value = self.safe_float(value)
+                            mapped[db_key] = value if value is not None else 0.0
+                        elif db_key == "type":
+                            mapped[db_key] = value.lower().strip() if value else "natural"
                         else:
-                            mapped[k] = value if value not in ("", None, "None") else None
+                            mapped[db_key] = value.strip() if value not in ("", None, "None") else ""
 
-                if not mapped.get("certificate_no"):
+                for num_field in ["table", "depth", "carat", "price", "selling_price"]:
+                    if mapped.get(num_field) is None:
+                        mapped[num_field] = 0.0
+
+                mandatory_strings = {
+                    "lab": "None",
+                    "image_source": "",
+                    "video_source": "",
+                    "description": "No description",
+                    "origin": "Unknown",
+                    "measurements": "-",
+                    "fluorescence": "None",
+                    "polish": "None",
+                    "symmetry": "None",
+                    "shape": "Round",
+                    "color": "-",
+                    "clarity": "-"
+                }
+
+                for field, default in mandatory_strings.items():
+                    if not mapped.get(field):
+                        mapped[field] = default
+
+                cert_no = mapped.get("certificate_no") or mapped.get("s_no")
+                if not cert_no:
                     continue
+                mapped["certificate_no"] = str(cert_no)
 
-                mapped.setdefault("origin", "Unknown")
-                mapped.setdefault("description", "No description")
-                mapped.setdefault("selling_price", mapped.get("price"))
-                mapped.setdefault("is_available", "Yes")
-                mapped.setdefault("status", 1)
+                mapped.update({
+                    "store_id": store_id,
+                    "shopify_name": shopify_name,
+                    "status": 1,
+                    "is_available": mapped.get("is_available") or "Yes"
+                })
 
-                mapped["store_id"] = store_id
-                mapped["shopify_name"] = shopify_name
-
-                if "certificate_no" not in mapped or not mapped["certificate_no"]:
-                    continue
-
-                existing = (db.query(CSVDiamond).filter_by(certificate_no=mapped["certificate_no"], store_id=store_id).first())
+                existing = db.query(CSVDiamond).filter_by(
+                    certificate_no=mapped["certificate_no"], 
+                    store_id=store_id
+                ).first()
 
                 if existing:
                     changed = False
-
                     for key, value in mapped.items():
                         if hasattr(existing, key) and getattr(existing, key) != value:
                             setattr(existing, key, value)
                             changed = True
-
                     if changed:
                         any_change = True
-                    else:
-                        duplicate_found = True
-
                 else:
                     db.add(CSVDiamond(**mapped))
+                    added_count += 1
                     any_change = True
 
             db.commit()
-
-            if any_change:
-                return {
-                    "success": True,
-                    "message": "CSV uploaded successfully"
-                }
-
-            if duplicate_found:
-                return {
-                    "success": False,
-                    "message": "Already exists"
-                }
-
-            return {
-                "success": True,
-                "message": "CSV processed"
-            }
+            return {"success": True, "message": f"Successfully processed {added_count} diamonds"}
 
         except Exception as e:
             db.rollback()

@@ -46,8 +46,8 @@ def bulk_delete_diamonds( payload: BulkDeleteRequest, shopify_name: str, db: Ses
 
 # Delete All Data
 @router.delete("/all-delete", status_code=200)
-def all_delete_diamonds( shopify_name: str, db: Session = Depends(get_db), store_name: str = Depends(get_current_store)):
-    return crud.diamonds.delete_all(db, store_name, shopify_name)
+def all_delete_diamonds( request: Request, db: Session = Depends(get_db), store_name: str = Depends(get_current_store)):
+    return crud.diamonds.delete_all(db, store_name, request.state.shopify_name)
 
 # get diamonds public routes
 @router.get("/public/diamonds", status_code=200)
