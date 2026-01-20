@@ -15,8 +15,8 @@ def create_gemstone(request: Request, gemstones: CSVGemstoneCreate, db: Session 
 
 # Get All CSV Data
 @router.get("/all-gemstones", status_code=200)
-def get_all(color: Optional[str] = None, clarity: Optional[str] = None, stone_type: Optional[str] = None, db:Session = Depends(get_db), store_name: str = Depends(get_current_store)):
-    data = crud.gemstone.get_all(db=db, store_id = store_name, color=color, clarity=clarity, stone_type=stone_type)
+def get_all(color: Optional[str] = None, clarity: Optional[str] = None, min_price: Optional[float] = None, max_price: Optional[float] = None, min_carat: Optional[float] = None, max_carat: Optional[float] = None, db:Session = Depends(get_db), store_name: str = Depends(get_current_store)):
+    data = crud.gemstone.get_all(db=db, store_id = store_name, color=color, clarity=clarity, stone_type=None, price_min=min_price, price_max=max_price, carat_min=min_carat, carat_max=max_carat)
     return data
 
 # Get Filter Data

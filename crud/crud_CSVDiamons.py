@@ -113,7 +113,10 @@ class CRUDDiamonds(CRUDBase):
             }
 
     # get All CSV Data
-    def get_all( self, db: Session, store_id: str, stone_type: str | None = None, color: str | None = None, clarity: str | None = None ):
+    def get_all( self, db: Session, store_id: str, stone_type: str | None = None,
+                color: str | None = None, clarity: str | None = None,
+                price_min: Optional[float] = None, price_max: Optional[float] = None,
+                carat_min: Optional[float] = None, carat_max: Optional[float] = None ):
         if not store_id:
             return []
 
@@ -121,12 +124,20 @@ class CRUDDiamonds(CRUDBase):
 
         if stone_type:
             query = query.filter(CSVDiamond.type == stone_type)
-
         if color:
             query = query.filter(CSVDiamond.color == color)
-
         if clarity:
             query = query.filter(CSVDiamond.clarity == clarity)
+
+        if price_min is not None:
+            query = query.filter(CSVDiamond.selling_price >= price_min)
+        if price_max is not None:
+            query = query.filter(CSVDiamond.selling_price <= price_max)
+
+        if carat_min is not None:
+            query = query.filter(CSVDiamond.carat >= carat_min)
+        if carat_max is not None:
+            query = query.filter(CSVDiamond.carat <= carat_max)
 
         return query.all()
 

@@ -118,7 +118,7 @@ class CRUDGemstones(CRUDBase):
             raise HTTPException(status_code=500, detail=f"Error creating gemstones: {str(e)}")
 
     # Get All CSV Data
-    def get_all(self, db: Session, store_id: str, color: Optional[str] = None, clarity: Optional[str] = None, stone_type: Optional[str] = None):
+    def get_all(self, db: Session, store_id: str, color: Optional[str] = None, clarity: Optional[str] = None, stone_type: Optional[str] = None, price_min: Optional[float] = None, price_max: Optional[float] = None, carat_min: Optional[float] = None, carat_max: Optional[float] = None):
         query = db.query(CSVGemstone).filter(CSVGemstone.store_id == store_id)
 
         if color:
@@ -127,7 +127,14 @@ class CRUDGemstones(CRUDBase):
             query = query.filter(CSVGemstone.clarity == clarity)
         if stone_type:
             query = query.filter(CSVGemstone.type == stone_type)
-
+        if price_min is not None:
+            query = query.filter(CSVGemstone.price >= price_min)
+        if price_max is not None:
+            query = query.filter(CSVGemstone.price <= price_max)
+        if carat_min is not None:
+            query = query.filter(CSVGemstone.carat >= carat_min)
+        if carat_max is not None:
+            query = query.filter(CSVGemstone.carat <= carat_max)
         return query.all()
 
     # get Filter gemstone

@@ -18,14 +18,22 @@ def get_all(
     stone_type: str | None = None,
     color: str | None = None,
     clarity: str | None = None,
+    price_min: float | None = None,
+    price_max: float | None = None,
+    carat_min: float | None = None,
+    carat_max: float | None = None,
     current_store_id: str = Depends(get_current_store),
 ):
     data = crud.diamonds.get_all(
         db=db,
-        store_id=current_store_id,
-        stone_type=stone_type,
         color=color,
         clarity=clarity,
+        stone_type=stone_type,
+        store_id=current_store_id,
+        price_min=price_min,
+        price_max=price_max,
+        carat_min=carat_min,
+        carat_max=carat_max,
     )
     return data
 
