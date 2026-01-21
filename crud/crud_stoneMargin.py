@@ -15,14 +15,12 @@ class CRUDStonemargin(CRUDBase):
         db.query(StoneMargin).filter(
             StoneMargin.store_id == obj_in.store_id,
             StoneMargin.type == stone_type,
-            StoneMargin.unit == obj_in.unit
-        ).delete()
+        ).delete(synchronize_session=False)
 
         for r in obj_in.ranges:
             if r.start >= r.end:
                 continue
-            
-            db_obj = StoneMargin(
+            new_margin = StoneMargin(
                 store_id=obj_in.store_id,
                 type=stone_type,
                 unit=obj_in.unit,
@@ -30,9 +28,9 @@ class CRUDStonemargin(CRUDBase):
                 end=r.end,
                 margin=r.margin
             )
-            db.add(db_obj)
+            db.add(new_margin)
 
-            updated_count = SellingPriceService.apply_margin(
+            total_updated += SellingPriceService.apply_margin(
                 db=db,
                 store_id=obj_in.store_id,
                 stone_type=stone_type,
@@ -41,10 +39,14 @@ class CRUDStonemargin(CRUDBase):
                 end=r.end,
                 margin=r.margin
             )
-            total_updated += updated_count
 
         db.commit()
-        return {"message": "Margins applied successfully", "count": total_updated}
+        db.expire_all()
+
+        return StoneMarginResponse(
+            message="Margins updated successfully",
+            count=total_updated
+        )
 
     # Get Stone Margins
     def get_stone(self, db: Session, store_id: str):
