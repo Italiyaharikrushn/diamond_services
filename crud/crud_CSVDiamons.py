@@ -8,6 +8,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from models.csv_diamond import CSVDiamond
+from models.stone_margin import StoneMargin
 from models.storesettings import StoreSettings
 from schemas.CSVDiamons import CSVDiamondCreate
 from services.diamond_service import get_custom_diamonds_service, custom_filter_query, csv_filter_query, get_single_diamonds_service
@@ -28,6 +29,11 @@ class CRUDDiamonds(CRUDBase):
         added_count = 0
 
         try:
+            margins = db.query(StoneMargin).filter(StoneMargin.store_id == store_id).all()
+            margin_map = {}
+            for m in margins:
+                margin_map.setdefault(m.type.lower(), []).append(m)
+
             for row in csv_reader:
                 row_cleaned = {k.lower().strip().replace(" ", "_"): v for k, v in row.items()}
                 mapped = {}
@@ -71,6 +77,26 @@ class CRUDDiamonds(CRUDBase):
                 for field, default in mandatory_strings.items():
                     if not mapped.get(field):
                         mapped[field] = default
+
+
+                stone_type = mapped.get("type", "natural").lower()
+                base_price = mapped.get("price", 0.0)
+                carat = mapped.get("carat", 0.0)
+
+                if stone_type in margin_map:
+                    applied_margin = 0
+                    for m in margin_map[stone_type]:
+                        check_val = carat if m.unit == "carat" else base_price
+                        if m.start <= check_val < m.end:
+                            applied_margin = m.margin
+                            break
+                    
+                    if applied_margin > 0:
+                        mapped["selling_price"] = base_price + (base_price * applied_margin / 100)
+                    else:
+                        mapped["selling_price"] = base_price
+                else:
+                    mapped["selling_price"] = base_price
 
                 cert_no = mapped.get("certificate_no") or mapped.get("s_no")
                 if not cert_no:

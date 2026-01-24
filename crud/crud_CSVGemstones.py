@@ -6,6 +6,7 @@ from sqlalchemy import func
 from crud.base import CRUDBase
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
+from models.stone_margin import StoneMargin
 from models.csv_gemstones import CSVGemstone
 from schemas.CSVGemstone import CSVGemstoneCreate
 from services.csv_gemstones import get_csv_gemstones
@@ -25,6 +26,11 @@ class CRUDGemstones(CRUDBase):
         try:
             csv_reader = csv.DictReader(StringIO(obj_in.csv_data))
             model_fields = set(CSVGemstone.__table__.columns.keys())
+            margins = db.query(StoneMargin).filter(StoneMargin.store_id == store_id).all()
+            margin_map = {}
+
+            for m in margins:
+                margin_map.setdefault(m.type.lower(), []).append(m)
 
             gemstones = []
             updated_gemstones = []
@@ -51,6 +57,22 @@ class CRUDGemstones(CRUDBase):
                 mapped["store_id"] = store_id
                 mapped["shopify_name"] = shopify_name
 
+                stone_type = "gemstones"
+                base_price = mapped.get("price", 0.0) or 0.0
+                carat = mapped.get("carat", 0.0) or 0.0
+
+                applied_margin = 0
+                if stone_type in margin_map:
+                    for m in margin_map[stone_type]:
+                        check_val = carat if m.unit == "carat" else base_price
+                        if m.start <= check_val < m.end:
+                            applied_margin = m.margin
+                            break
+
+                if applied_margin > 0:
+                    mapped["selling_price"] = base_price + (base_price * applied_margin / 100)
+                else:
+                    mapped["selling_price"] = base_price
                 existing_gemstone = db.query(CSVGemstone).filter_by(certificate_no=mapped["certificate_no"], store_id=store_id).first()
 
                 if existing_gemstone:
