@@ -233,17 +233,15 @@ class CRUDDiamonds(CRUDBase):
             return {"success": False, "error": str(e)}
     
     # All Delete Diamonds
-    def delete_all(self, db: Session, store_id: str, shopify_name: str):
+    def delete_all(self, db: Session, store_id: str, shopify_name: str, stone_type: str = None):
         try:
-            deleted = (
-                db.query(CSVDiamond)
-                .filter(
+            query = db.query(CSVDiamond).filter(
                     CSVDiamond.store_id == store_id,
-                    func.lower(CSVDiamond.shopify_name) == shopify_name.lower()
-                )
-                .delete(synchronize_session=False)
-            )
-
+                    func.lower(CSVDiamond.shopify_name) == shopify_name.lower())
+            if stone_type:
+                query = query.filter(func.lower(CSVDiamond.type) == stone_type.lower())
+            
+            deleted = query.delete(synchronize_session=False)
             db.commit()
             return {"success": True, "deleted_count": deleted}
 

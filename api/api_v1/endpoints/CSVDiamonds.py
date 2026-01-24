@@ -1,5 +1,6 @@
 import crud
 from sqlalchemy.orm import Session
+from typing import Optional
 from api.dependencies import get_db, get_current_store
 from schemas.CSVDiamons import CSVDiamondCreate, BulkDeleteRequest
 from fastapi import APIRouter, Depends, Request, Query
@@ -54,8 +55,8 @@ def bulk_delete_diamonds( payload: BulkDeleteRequest, shopify_name: str, db: Ses
 
 # Delete All Data
 @router.delete("/all-delete", status_code=200)
-def all_delete_diamonds( request: Request, db: Session = Depends(get_db), store_name: str = Depends(get_current_store)):
-    return crud.diamonds.delete_all(db, store_name, request.state.shopify_name)
+def all_delete_diamonds( request: Request, db: Session = Depends(get_db), store_name: str = Depends(get_current_store), stone_type: Optional[str] = None,):
+    return crud.diamonds.delete_all(db, store_name, request.state.shopify_name, stone_type)
 
 # get diamonds public routes
 @router.get("/public/diamonds", status_code=200)
