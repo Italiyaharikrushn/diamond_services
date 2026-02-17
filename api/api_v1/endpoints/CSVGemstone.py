@@ -45,12 +45,14 @@ def soft_delete_all_gemstones( shopify_name: str, db: Session = Depends(get_db),
 
 # Public gemstones
 @router.get("/public/gemstones", status_code=200)
-async def get_gemstones( request: Request, _: None = Depends(check_feed), store_id: str | None = Query(None), db: Session = Depends(get_db)):
+async def get_gemstones( request: Request, _: None = Depends(check_feed), store_id: str | None = Query(None), page: int = Query(1, ge=1), limit: int = Query(12, ge=1), db: Session = Depends(get_db)):
     store_id = store_id or getattr(request.state, "store_id", None)
-    shopify_name = getattr(request.state, "shopify_name", None)
-    feed_config = request.state.feed_config
+    shopify_app = getattr(request.state, "shopify_name", None)
+    query_params = dict(request.query_params)
+    query_params["page"] = page
+    query_params["limit"] = limit
 
-    result = await crud.gemstone.get_gemstones( db=db, store_id=store_id, shopify_name=shopify_name, query_params=dict(request.query_params),feed_config=feed_config)
+    result = await crud.gemstone.get_gemstones( db=db, store_id=store_id, shopify_name=shopify_app, query_params=query_params)
 
     if result["error"]:
         return {
@@ -98,7 +100,6 @@ async def get_gemstone( request: Request, _: None = Depends(check_feed), id: int
     store_id = store_id or getattr(request.state, "store_id", None)
     shopify_name = getattr(request.state, "shopify_name", None)
     custom_feed = request.state.custom_feed
-    feed_config = request.state.feed_config
 
     if not id:
         return {
@@ -106,7 +107,7 @@ async def get_gemstone( request: Request, _: None = Depends(check_feed), id: int
             "message": "id is required"
         }
 
-    result = await crud.gemstone.get_gemstone_by_id( db=db, id=id, store_id=store_id, shopify_name=shopify_name, stone_type=stone_type, custom_feed=custom_feed, feed_config=feed_config)
+    result = await crud.gemstone.get_gemstone_by_id( db=db, id=id, store_id=store_id, shopify_name=shopify_name, stone_type=stone_type, custom_feed=custom_feed)
 
     if result["error"]:
         return {

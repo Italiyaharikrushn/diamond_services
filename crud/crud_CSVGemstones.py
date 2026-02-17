@@ -1,5 +1,6 @@
 import csv
 import logging
+import math
 from io import StringIO
 from typing import Optional
 from sqlalchemy import func
@@ -7,6 +8,7 @@ from crud.base import CRUDBase
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from models.stone_margin import StoneMargin
+from models.storesettings import StoreSettings
 from models.csv_gemstones import CSVGemstone
 from schemas.CSVGemstone import CSVGemstoneCreate
 from services.csv_gemstones import get_csv_gemstones
@@ -41,6 +43,9 @@ class CRUDGemstones(CRUDBase):
 
                 for key, value in row.items():
                     k = key.lower().replace(" ", "_")
+
+                    if k == "gemstone_type":
+                        k = "sub_type"
 
                     if k in model_fields:
                         mapped[k] = self.safe_float(value) if k in {"carat", "price", "selling_price", "table", "depth"} else (
@@ -144,9 +149,11 @@ class CRUDGemstones(CRUDBase):
         query = db.query(CSVGemstone).filter(CSVGemstone.store_id == store_id)
 
         if color:
-            query = query.filter(CSVGemstone.color == color)
+            color_list = color.split(",")
+            query = query.filter(CSVGemstone.color.in_(color_list))
         if clarity:
-            query = query.filter(CSVGemstone.clarity == clarity)
+            clarity_list = clarity.split(",")
+            query = query.filter(CSVGemstone.clarity.in_(clarity_list))
         if stone_type:
             query = query.filter(CSVGemstone.type == stone_type)
         if price_min is not None:
@@ -236,26 +243,64 @@ class CRUDGemstones(CRUDBase):
             }
 
     # Get Gemstones
-    async def get_gemstones( self, db: Session, store_id: str, shopify_name: str | None, query_params: dict, feed_config: dict):
+    async def get_gemstones( self, db: Session, store_id: str, shopify_name: str | None, query_params: dict):
+        if not store_id:
+            return {"error": True, "status": 400, "message": "Store_id is required"}
+
+        store_settings = (db.query(StoreSettings).filter(StoreSettings.store_id == store_id).first())
+
+        if not store_settings:
+            return {"error": True,"status": 404,"message": "Store settings not Found"}
+        
         stone_type = query_params.get("type")
+        query = db.query(CSVGemstone).filter(CSVGemstone.store_id == store_id)
 
-        if not stone_type:
-            return {"error": True, "message": "'type' is required"}
+        logger.info(f"STORE={store_id} | CUSTOM_FEED={store_settings.custom_feed}")
 
-        if stone_type not in feed_config:
+        stone_type = query_params.get("type")
+        if not store_settings.custom_feed and not stone_type:
             return {
                 "error": True,
-                "message": f"feed_config not found for {stone_type}"
+                "status": 400,
+                "message": "'type' parameter is required"
             }
 
-        config_type = feed_config[stone_type]["type"]
+        query = db.query(CSVGemstone).filter(
+            CSVGemstone.store_id == store_id
+        )
+        if stone_type:
+            query = query.filter(CSVGemstone.type == stone_type)
 
-        if config_type == "CSV":
-            return await get_csv_gemstones( db=db, store_id=store_id, shopify_name=shopify_name, query_params=query_params)
+        shape_param = query_params.get("shape")
+        if shape_param:
+            shapes = [s.strip() for s in shape_param.split(",") if s]
+
+            if stone_type == "gemstones":
+                query = query.filter(CSVGemstone.sub_type.in_(shapes))
+            else:
+                query = query.filter(CSVGemstone.shape.in_(shapes))
+        page = int(query_params.get("page", 1))
+        limit = int(query_params.get("limit", 12))
+        offset = (page - 1) * limit
+
+        total = query.count()
+
+        gemstones = (
+            query
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
 
         return {
-            "error": True,
-            "message": f"{config_type} feed not supported"
+            "error": False,
+            "gemstones": gemstones,
+            "pagination": {
+                "page": page,
+                "limit": limit,
+                "total": total,
+                "total_pages": math.ceil(total / limit) if limit else 1
+            }
         }
 
     # Get Gemstone Filters

@@ -2,13 +2,26 @@ import math
 import logging
 from sqlalchemy import asc, desc
 from sqlalchemy.orm import Session
+from models.storesettings import StoreSettings
 from models.csv_gemstones import CSVGemstone
 
 logger = logging.getLogger(__name__)
 
 # Get CSV Gemstones
-async def get_csv_gemstones( db: Session, store_id: str, shopify_app: str | None, query_params: dict):
+async def get_csv_gemstones( db: Session, store_id: str, query_params: dict):
     try:
+        if not store_id:
+            return {"error": True, "status": 400, "message": "store_id is required"}
+
+        store_setting = (
+            db.query(StoreSettings)
+            .filter(StoreSettings.store_id == store_id)
+            .first()
+        )
+
+        if not store_setting:
+            return {"error": True, "status": 404, "message": "Store setting not found"}
+        
         page = int(query_params.get("page", 1))
         limit = int(query_params.get("limit", 10))
         offset = (page - 1) * limit
@@ -16,9 +29,6 @@ async def get_csv_gemstones( db: Session, store_id: str, shopify_app: str | None
         query = db.query(CSVGemstone).filter(
             CSVGemstone.store_id == store_id
         )
-
-        if shopify_app:
-            query = query.filter(CSVGemstone.shopify_name == shopify_app)
 
         # filters
         if query_params.get("carat_min"):

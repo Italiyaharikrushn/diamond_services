@@ -1,4 +1,5 @@
 import csv
+import math
 from io import StringIO
 from loguru import logger
 from sqlalchemy import func
@@ -151,9 +152,11 @@ class CRUDDiamonds(CRUDBase):
         if stone_type:
             query = query.filter(CSVDiamond.type == stone_type)
         if color:
-            query = query.filter(CSVDiamond.color == color)
+            color_list = color.split(",")
+            query = query.filter(CSVDiamond.color.in_(color_list))
         if clarity:
-            query = query.filter(CSVDiamond.clarity == clarity)
+            clarity_list = clarity.split(",")
+            query = query.filter(CSVDiamond.clarity.in_(clarity_list))
 
         if price_min is not None:
             query = query.filter(CSVDiamond.selling_price >= price_min)
@@ -285,7 +288,7 @@ class CRUDDiamonds(CRUDBase):
     ):
         if not store_id:
             return {"error": True, "status": 400, "message": "Store_id is required"}
-        
+
         store_settings = (
             db.query(StoreSettings).filter(StoreSettings.store_id == store_id).first()
         )
@@ -294,18 +297,38 @@ class CRUDDiamonds(CRUDBase):
                         "error": True, "status": 404, "message": "Store settings not found"
                     }
 
-        logger.info(f"STORE={store_id} | CUSTOM_FEED={store_settings.custom_feed}")
-        if not store_settings.custom_feed:
-            stone_type = query_params.get("type")
-            if not stone_type:
+        stone_type = query_params.get("type")
+        if not store_settings.custom_feed and not stone_type:
                 return {
                     "error": True, "status": 400, "message": "'type' parameter is required"
                 }
-        else:
-            stone_type = query_params.get("type")
+        query = db.query(CSVDiamond).filter(
+            CSVDiamond.store_id == store_id
+        )
+        if stone_type:
+            query = query.filter(CSVDiamond.type == stone_type)
+        shape_param = query_params.get("shape")
+        if shape_param:
+            shapes = [s.strip() for s in shape_param.split(",") if s]
+            query = query.filter(CSVDiamond.shape.in_(shapes))
 
-        result = await get_custom_diamonds_service(db=db, store_id=store_id, query_params=query_params)
-        return result
+        page = int(query_params.get("page", 1))
+        limit = int(query_params.get("limit", 12))
+        offset = (page - 1) * limit
+
+        total = query.count()
+
+        diamonds = (query.offset(offset).limit(limit).all())
+        return {
+            "error": False,
+            "diamonds": diamonds,
+            "pagination": {
+                "page": page,
+                "limit": limit,
+                "total": total,
+                "total_pages": math.ceil(total / limit) if limit else 1
+            }
+        }
 
     # get diamonds with filter for store_id & type
     async def get_diamond_filter(self, db: Session, store_id: str, query_params: dict):

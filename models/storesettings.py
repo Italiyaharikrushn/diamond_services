@@ -4,7 +4,7 @@ from sqlalchemy import Column, Integer, String, Boolean, JSON
 class StoreSettings(Base):
     id = Column(Integer, primary_key=True, index=True)
     store_id = Column(String(255), nullable=False)
-    shopify_name = Column(String(255), nullable=False)
+    shopify_name = Column(String(255), nullable=True)
     custom_feed = Column(Boolean, nullable=False, default=False)
     settings = Column(JSON, nullable=True)
-    feed_config = Column(JSON, nullable=False)
+    feed_config = Column(JSON, nullable=True, default={})

@@ -59,7 +59,10 @@ def is_unauthorized_url(request: Request):
         "/order/public/get-orders",
 
         # Group endpoints
-        "/group/public/get-groups-for-product"
+        "/group/public/get-groups-for-product",
+
+        # Store-Settings
+        "/storeSetting/public/store-settings",
 
     ]
 
