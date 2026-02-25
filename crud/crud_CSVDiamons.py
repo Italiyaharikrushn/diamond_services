@@ -300,12 +300,20 @@ class CRUDDiamonds(CRUDBase):
 
         min_carat = query_params.get("min_carat")
         max_carat = query_params.get("max_carat")
+        min_price = query_params.get("min_price")
+        max_price = query_params.get("max_price")
         color_param = query_params.get("color")
 
-        if min_carat:
+        if min_carat is not None:
             query = query.filter(CSVDiamond.carat >= float(min_carat))
-        if max_carat:
+        if max_carat is not None:
             query = query.filter(CSVDiamond.carat <= float(max_carat))
+
+        if min_price is not None:
+            query = query.filter(CSVDiamond.selling_price >= float(min_price))
+        
+        if max_price is not None:
+            query = query.filter(CSVDiamond.selling_price <= float(max_price))
 
         if color_param:
             color_list = [c.strip() for c in color_param.split(",") if c]
