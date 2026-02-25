@@ -67,5 +67,5 @@ class CRUDDiamond(CRUDBase):
         db.execute(stmt)
         db.commit()
         return {"upserted": len(rows), "errors": []}
-    
+
 diamond = CRUDDiamond(IngestedDiamonds)

@@ -265,9 +265,14 @@ class CRUDGemstones(CRUDBase):
                 "message": "'type' parameter is required"
             }
 
-        query = db.query(CSVGemstone).filter(
-            CSVGemstone.store_id == store_id
-        )
+        query = db.query(CSVGemstone).filter(CSVGemstone.store_id == store_id)
+        min_carat = query_params.get("min_carat")
+        max_carat = query_params.get("max_carat")
+
+        if min_carat:
+            query = query.filter(CSVGemstone.carat >= float(min_carat))
+        if max_carat:
+            query = query.filter(CSVGemstone.carat <= float(max_carat))
         if stone_type:
             query = query.filter(CSVGemstone.type == stone_type)
 

@@ -279,13 +279,7 @@ class CRUDDiamonds(CRUDBase):
             return {"success": False, "error": str(e)}
 
     # Add Diamonds 
-    async def get_diamonds(
-        self,
-        db: Session,
-        store_id: str,
-        shopify_name: str | None,
-        query_params: dict
-    ):
+    async def get_diamonds( self, db: Session, store_id: str, shopify_name: str | None, query_params: dict):
         if not store_id:
             return {"error": True, "status": 400, "message": "Store_id is required"}
 
@@ -302,9 +296,21 @@ class CRUDDiamonds(CRUDBase):
                 return {
                     "error": True, "status": 400, "message": "'type' parameter is required"
                 }
-        query = db.query(CSVDiamond).filter(
-            CSVDiamond.store_id == store_id
-        )
+        query = db.query(CSVDiamond).filter(CSVDiamond.store_id == store_id)
+
+        min_carat = query_params.get("min_carat")
+        max_carat = query_params.get("max_carat")
+        color_param = query_params.get("color")
+
+        if min_carat:
+            query = query.filter(CSVDiamond.carat >= float(min_carat))
+        if max_carat:
+            query = query.filter(CSVDiamond.carat <= float(max_carat))
+
+        if color_param:
+            color_list = [c.strip() for c in color_param.split(",") if c]
+            query = query.filter(CSVDiamond.color.in_(color_list))
+
         if stone_type:
             query = query.filter(CSVDiamond.type == stone_type)
         shape_param = query_params.get("shape")
