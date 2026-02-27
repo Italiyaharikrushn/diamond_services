@@ -11,7 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from models.csv_diamond import CSVDiamond
 from models.stone_margin import StoneMargin
 from models.storesettings import StoreSettings
-from schemas.CSVDiamons import CSVDiamondCreate
+from schemas.CSVDiamonds import CSVDiamondCreate
 from services.diamond_service import get_custom_diamonds_service, custom_filter_query, csv_filter_query, get_single_diamonds_service
 
 class CRUDDiamonds(CRUDBase):
@@ -298,11 +298,15 @@ class CRUDDiamonds(CRUDBase):
                 }
         query = db.query(CSVDiamond).filter(CSVDiamond.store_id == store_id)
 
+        cut_param = query_params.get("cut")
+        report_param = query_params.get("lab")
+        color_param = query_params.get("color")
         min_carat = query_params.get("min_carat")
         max_carat = query_params.get("max_carat")
         min_price = query_params.get("min_price")
         max_price = query_params.get("max_price")
-        color_param = query_params.get("color")
+        polish_param = query_params.get("polish")
+        clarity_param = query_params.get("clarity")
 
         if min_carat is not None:
             query = query.filter(CSVDiamond.carat >= float(min_carat))
@@ -318,6 +322,22 @@ class CRUDDiamonds(CRUDBase):
         if color_param:
             color_list = [c.strip() for c in color_param.split(",") if c]
             query = query.filter(CSVDiamond.color.in_(color_list))
+
+        if clarity_param:
+            clarity_list = [c.strip() for c in clarity_param.split(",") if c]
+            query = query.filter(CSVDiamond.clarity.in_(clarity_list))
+
+        if cut_param:
+            cut_list = [c.strip() for c in cut_param.split(",") if c]
+            query = query.filter(CSVDiamond.cut.in_(cut_list))
+
+        if report_param:
+            report_list = [r.strip() for r in report_param.split(",") if r]
+            query = query.filter(CSVDiamond.lab.in_(report_list))
+
+        if polish_param:
+            polish_list = [p.strip() for p in polish_param.split(",") if p]
+            query = query.filter(CSVDiamond.polish.in_(polish_list))
 
         if stone_type:
             query = query.filter(CSVDiamond.type == stone_type)

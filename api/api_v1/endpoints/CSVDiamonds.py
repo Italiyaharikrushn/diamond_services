@@ -2,7 +2,7 @@ import crud
 from sqlalchemy.orm import Session
 from typing import Optional
 from api.dependencies import get_db, get_current_store
-from schemas.CSVDiamons import CSVDiamondCreate, BulkDeleteRequest
+from schemas.CSVDiamonds import CSVDiamondCreate, BulkDeleteRequest
 from fastapi import APIRouter, Depends, Request, Query
 router = APIRouter()
 

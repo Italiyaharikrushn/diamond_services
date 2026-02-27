@@ -270,6 +270,11 @@ class CRUDGemstones(CRUDBase):
         max_carat = query_params.get("max_carat")
         min_price = query_params.get("min_price")
         max_price = query_params.get("max_price")
+        color_param = query_params.get("color")
+        clarity_param = query_params.get("clarity")
+        cut_param = query_params.get("cut")
+        report_param = query_params.get("lab")
+        polish_param = query_params.get("polish")
 
         if min_carat is not None:
             query = query.filter(CSVGemstone.carat >= float(min_carat))
@@ -281,6 +286,26 @@ class CRUDGemstones(CRUDBase):
         
         if max_price is not None:
             query = query.filter(CSVGemstone.selling_price <= float(max_price))
+
+        if color_param:
+            color_list = [c.strip() for c in color_param.split(",") if c]
+            query = query.filter(CSVGemstone.color.in_(color_list))
+
+        if clarity_param:
+            clarity_list = [c.strip() for c in clarity_param.split(",") if c]
+            query = query.filter(CSVGemstone.clarity.in_(clarity_list))
+
+        if cut_param:
+            cut_list = [c.strip() for c in cut_param.split(",") if c]
+            query = query.filter(CSVGemstone.cut.in_(cut_list))
+
+        if report_param:
+            report_list = [r.strip() for r in report_param.split(",") if r]
+            query = query.filter(CSVGemstone.lab.in_(report_list))
+
+        if polish_param:
+            polish_list = [p.strip() for p in polish_param.split(",") if p]
+            query = query.filter(CSVGemstone.polish.in_(polish_list))
 
         if stone_type:
             query = query.filter(CSVGemstone.type == stone_type)
