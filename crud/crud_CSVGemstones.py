@@ -266,15 +266,16 @@ class CRUDGemstones(CRUDBase):
             }
 
         query = db.query(CSVGemstone).filter(CSVGemstone.store_id == store_id)
+
+        cut_param = query_params.get("cut")
+        report_param = query_params.get("lab")
+        color_param = query_params.get("color")
+        polish_param = query_params.get("polish")
         min_carat = query_params.get("min_carat")
         max_carat = query_params.get("max_carat")
         min_price = query_params.get("min_price")
         max_price = query_params.get("max_price")
-        color_param = query_params.get("color")
         clarity_param = query_params.get("clarity")
-        cut_param = query_params.get("cut")
-        report_param = query_params.get("lab")
-        polish_param = query_params.get("polish")
 
         if min_carat is not None:
             query = query.filter(CSVGemstone.carat >= float(min_carat))
