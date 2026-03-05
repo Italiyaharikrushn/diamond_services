@@ -5,14 +5,12 @@ from loguru import logger
 from sqlalchemy import func
 from typing import Optional
 from crud.base import CRUDBase
-from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
 from models.csv_diamond import CSVDiamond
 from models.stone_margin import StoneMargin
 from models.storesettings import StoreSettings
 from schemas.CSVDiamonds import CSVDiamondCreate
-from services.diamond_service import get_custom_diamonds_service, custom_filter_query, csv_filter_query, get_single_diamonds_service
+from services.diamond_service import custom_filter_query, csv_filter_query, get_single_diamonds_service
 
 class CRUDDiamonds(CRUDBase):
     @staticmethod
@@ -419,7 +417,7 @@ class CRUDDiamonds(CRUDBase):
         if not store_id:
             return {"error": True, "status": 400, "message": "Store_id is required"}
 
-        store_settings = ( db.query(StoreSettings) .filter(StoreSettings.store_id == store_id) .first())
+        store_settings = ( db.query(StoreSettings).filter(StoreSettings.store_id == store_id) .first())
 
         if not store_settings:
             return {

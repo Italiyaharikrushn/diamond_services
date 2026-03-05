@@ -210,6 +210,7 @@ async def get_single_diamonds_service(
             "cut": diamond.cut,
             "shape": diamond.shape,
             "lab": diamond.lab,
+            "selling_price": diamond.selling_price,
             "certificate_number": diamond.certificate_no,
             "origin": diamond.origin,
             "description": diamond.description,
