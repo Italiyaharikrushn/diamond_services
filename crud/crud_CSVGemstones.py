@@ -34,9 +34,9 @@ class CRUDGemstones(CRUDBase):
             for m in margins:
                 margin_map.setdefault(m.type.lower(), []).append(m)
 
-            gemstones = []
             updated_gemstones = []
             created_gemstones = []
+            incoming_by_certificate = {}
 
             for row in csv_reader:
                 mapped = {}
@@ -78,36 +78,40 @@ class CRUDGemstones(CRUDBase):
                     mapped["selling_price"] = base_price + (base_price * applied_margin / 100)
                 else:
                     mapped["selling_price"] = base_price
-                existing_gemstone = db.query(CSVGemstone).filter_by(certificate_no=mapped["certificate_no"], store_id=store_id).first()
+
+                certificate_no = mapped.get("certificate_no")
+                if not certificate_no:
+                    raise HTTPException(status_code=400, detail="Missing certificate_no in CSV row")
+
+                if certificate_no in incoming_by_certificate:
+                    if mapped == incoming_by_certificate[certificate_no]:
+                        continue
+                    incoming_by_certificate[certificate_no] = mapped
+                else:
+                    incoming_by_certificate[certificate_no] = mapped
+
+            for certificate_no, mapped in incoming_by_certificate.items():
+                existing_gemstone = db.query(CSVGemstone).filter_by(certificate_no=certificate_no, store_id=store_id).first()
 
                 if existing_gemstone:
                     updated = False
-
                     for key, value in mapped.items():
                         if key == "certificate_no":
                             continue
 
                         old_value = getattr(existing_gemstone, key, None)
-
                         if value != old_value:
                             setattr(existing_gemstone, key, value)
                             updated = True
 
-                    if not updated:
-                        # SAME DATA + SAME CERTIFICATE + SAME STORE
-                        raise HTTPException(
-                            status_code=400,
-                            detail=f"Duplicate certificate '{mapped['certificate_no']}' not allowed for this store"
-                        )
-
-                    updated_gemstones.append(existing_gemstone)
-                    gemstones.append(existing_gemstone)
+                    if updated:
+                        updated_gemstones.append(existing_gemstone)
+                    else:
+                        continue
                 else:
-                    new_gemstone = CSVGemstone(**mapped)
-                    created_gemstones.append(new_gemstone)
-                    gemstones.append(new_gemstone)
+                    created_gemstones.append(CSVGemstone(**mapped))
 
-            db.bulk_save_objects(gemstones)  
+            if created_gemstones: db.add_all(created_gemstones)
             db.commit()
 
             response = {
@@ -120,7 +124,6 @@ class CRUDGemstones(CRUDBase):
                         "selling_price": g.selling_price,
                         "description": g.description,
                         "origin": g.origin,
-                        # Add any other fields you want in the response
                     } for g in created_gemstones
                 ],
                 "updated_gemstones": [
@@ -133,11 +136,9 @@ class CRUDGemstones(CRUDBase):
                         "selling_price": g.selling_price,
                         "description": g.description,
                         "origin": g.origin,
-                        # Add any other fields you want in the response
                     } for g in updated_gemstones
                 ],
             }
-
             return response
 
         except Exception as e:
