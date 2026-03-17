@@ -95,11 +95,12 @@ async def gemstone_filters( request: Request, _: None = Depends(check_feed), sto
     }
 
 # Public get gemstone by id
-@router.get("/public/gemstones/get-gemstone", status_code=200)
+@router.get("/public/get-gemstone", status_code=200)
 async def get_gemstone( request: Request, _: None = Depends(check_feed), id: int | None = Query(None), stone_type: str | None = Query(None), store_id: str | None = Query(None), db: Session = Depends(get_db),):
     store_id = store_id or getattr(request.state, "store_id", None)
     shopify_name = getattr(request.state, "shopify_name", None)
-    custom_feed = request.state.custom_feed
+    custom_feed = getattr(request.state, "custom_feed", False)
+    feed_config = getattr(request.state, "feed_config", {})
 
     if not id:
         return {
@@ -107,7 +108,7 @@ async def get_gemstone( request: Request, _: None = Depends(check_feed), id: int
             "message": "id is required"
         }
 
-    result = await crud.gemstone.get_gemstone_by_id( db=db, id=id, store_id=store_id, shopify_name=shopify_name, stone_type=stone_type, custom_feed=custom_feed)
+    result = await crud.gemstone.get_gemstone_by_id( db=db, id=id, store_id=store_id, shopify_name=shopify_name, stone_type=stone_type, custom_feed=custom_feed, feed_config=feed_config)
 
     if result["error"]:
         return {

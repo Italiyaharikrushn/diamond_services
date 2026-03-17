@@ -15,9 +15,6 @@ def get_url():
 
 
 def include_object(object, name, type_, reflected, compare_to):
-    # Ignore the csv_gemstones table to avoid migration errors on it
-    if type_ == "table" and name == "csv_gemstones":
-        return False
     return True
 
 
