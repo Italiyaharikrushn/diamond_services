@@ -47,7 +47,7 @@ def is_unauthorized_url(request: Request):
         # Gemstone endpoints
         "/gemstones/public/gemstones",
         "/gemstones/public/gemstones/filters",
-        "/gemstones/public/gemstones/get-gemstone",
+        "/gemstones/public/get-gemstone",
 
         # Ingest endpoints
         "/diamond/public/ingest/all",
@@ -64,6 +64,10 @@ def is_unauthorized_url(request: Request):
         # Store-Settings
         "/storeSetting/public/store-settings",
 
+        # Ring Data
+        "/ring/public/ring",
+        "/ring/public/get-ring",
+        "/ring/public/get-single-ring/{ring_id}"
     ]
 
     path = request.url.path
